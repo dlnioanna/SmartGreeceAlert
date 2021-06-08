@@ -2,32 +2,69 @@ package unipi.protal.smartgreecealert;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.view.View;
+import android.widget.Toast;
 
+import unipi.protal.smartgreecealert.databinding.ActivityMainBinding;
 import unipi.protal.smartgreecealert.services.AccelerometerService;
 
 public class MainActivity extends AppCompatActivity {
-private Intent serviceIntent;
+    private static final String MY_APP_RECEIVER = "accelerometer_receiver";
+    private ActivityMainBinding binding;
+    private Intent serviceIntent;
+    AccelerometerReceiver accelerometerReceiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        View view = binding.getRoot();
+        setContentView(view);
+        accelerometerReceiver = new AccelerometerReceiver();
         serviceIntent = new Intent(this, AccelerometerService.class);
-
-
     }
 
     @Override
-    protected void onResume() {
+    protected void onStart() {
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(MY_APP_RECEIVER);
+        registerReceiver(accelerometerReceiver, intentFilter);
         startService(serviceIntent);
-        super.onResume();
+        super.onStart();
     }
 
     @Override
     protected void onStop() {
         stopService(serviceIntent);
+        unregisterReceiver(accelerometerReceiver);
         super.onStop();
+    }
 
+
+    private class AccelerometerReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            stopService(serviceIntent);
+            CountDownTimer timer = new CountDownTimer(10000,1000) {
+                @Override
+                public void onTick(long l) {
+                binding.text.setText(String.valueOf((int) l/1000));
+                }
+
+                @Override
+                public void onFinish() {
+                    binding.text.setText("finished");
+                    startService(serviceIntent);
+                }
+            };
+            timer.start();
+        }
     }
 }

@@ -17,7 +17,6 @@
             </intent-filter>
         </activity>
         <service android:name="unipi.protal.smartgreecealert.services.AccelerometerService"/>
-
     </application>
 
 </manifest>

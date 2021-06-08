@@ -3,6 +3,7 @@ package unipi.protal.smartgreecealert.services;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -17,7 +18,7 @@ import androidx.annotation.Nullable;
 public class AccelerometerService extends Service implements SensorEventListener {
     SensorManager sensorManager;
     Sensor accelerometerSensor;
-
+    private static final String MY_APP_RECEIVER="accelerometer_receiver";
     public AccelerometerService() {
     }
 
@@ -36,19 +37,10 @@ public class AccelerometerService extends Service implements SensorEventListener
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            if(event.values[0]+event.values[1]+event.values[2]>12){
-                Toast.makeText(this, event.values[0] + " " + event.values[1] + " " + event.values[2], Toast.LENGTH_SHORT).show();
-                CountDownTimer timer = new CountDownTimer(30000,1000) {
-                    @Override
-                    public void onTick(long l) {
-
-                    }
-
-                    @Override
-                    public void onFinish() {
-
-                    }
-                };
+            if(event.values[0]+event.values[1]+event.values[2]>13){
+                Intent intent = new Intent();
+                intent.setAction(MY_APP_RECEIVER);
+                sendBroadcast(intent);
             }
 
         }
