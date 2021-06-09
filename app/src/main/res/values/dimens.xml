@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="welcome_text_size">24sp</dimen>
+    <dimen name="button_padding">16dp</dimen>
+    <dimen name="button_text_size">16sp</dimen>
+    <dimen name="hospital_description_size">16sp</dimen>
+    <dimen name="small">4dp</dimen>
+    <dimen name="medium">8dp</dimen>
+    <dimen name="large">16dp</dimen>
+    <dimen name="extra_large">32dp</dimen>
+    <dimen name="extra_extra_large">64dp</dimen>
+</resources>

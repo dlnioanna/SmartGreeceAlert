@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SmartGreeceAlert</string>
+    <string name="title_activity">Alerte de Danger</string>
+    <string name="sign_out_text">Déconnexion</string>
+    <string name="language_setting">Langue</string>
+    <string name="abort_button">Annuler</string>
+</resources>

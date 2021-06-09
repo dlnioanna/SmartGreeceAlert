@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">SmartGreeceAlert</string>
+    <string name="title_activity">Ενημέρωση Κινδύνου</string>
+    <string name="sign_out_text">Αποσύνδεση</string>
+    <string name="language_setting">Γλώσσα</string>
+    <string name="abort_button">Ακύρωση</string>
 </resources>

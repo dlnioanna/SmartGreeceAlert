@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "1075214367576",
+    "project_id": "protal5",
+    "storage_bucket": "protal5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1075214367576:android:8a17a77f86556b0647032d",
+        "android_client_info": {
+          "package_name": "unipi.protal.protal5"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1075214367576-etl9b94atgduqmd8j12vvva8nmgb409e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCigv1G0srGH0LXG1zHo-Z5vW2ftIpv0l0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1075214367576-etl9b94atgduqmd8j12vvva8nmgb409e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1075214367576:android:097a599c4c912c1947032d",
+        "android_client_info": {
+          "package_name": "unipi.protal.smartgreecealert"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1075214367576-etl9b94atgduqmd8j12vvva8nmgb409e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCigv1G0srGH0LXG1zHo-Z5vW2ftIpv0l0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1075214367576-etl9b94atgduqmd8j12vvva8nmgb409e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
