@@ -23,7 +23,6 @@ import unipi.protal.smartgreecealert.databinding.ActivityFirebaseUiBinding;
 public class FirebaseUIActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 123;
     public static final int REQUEST_LOCATION = 1000;
-    //    public static final int START_MAPS_ACTIVITY = 2000;
     // Firebase instance variables
     private FirebaseAuth firebaseAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
@@ -103,12 +102,18 @@ public class FirebaseUIActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Restore auth through activity lifecycle
+     */
     @Override
     protected void onResume() {
         super.onResume();
        firebaseAuth.addAuthStateListener(authStateListener);
     }
 
+    /**
+     * Keep auth through activity lifecycle
+     */
     @Override
     protected void onPause() {
         super.onPause();
