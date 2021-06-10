@@ -20,13 +20,11 @@ import com.google.firebase.auth.FirebaseUser;
 import java.io.IOException;
 
 import unipi.protal.smartgreecealert.databinding.ActivityAlertBinding;
-import unipi.protal.smartgreecealert.services.EarthquakeService;
 import unipi.protal.smartgreecealert.services.FallService;
 import unipi.protal.smartgreecealert.settings.SettingsActivity;
 
 public class AlertActivity extends AppCompatActivity {
     private static final String FALL_RECEIVER = "accelerometer_gravity_receiver";
-    private static final String EARTHQUAKE_RECEIVER = "accelerometer_earthquake_receiver";
     private ActivityAlertBinding binding;
     private Intent fallServiceIntent, earthquakeServiceIntent;
     private MediaPlayer player;
@@ -46,7 +44,6 @@ public class AlertActivity extends AppCompatActivity {
         player = MediaPlayer.create(this, R.raw.clock_sound);
         accelerometerReceiver = new AccelerometerReceiver();
         fallServiceIntent = new Intent(this, FallService.class);
-        earthquakeServiceIntent = new Intent(this, EarthquakeService.class);
         binding.abortButton.setOnClickListener(v -> {
             stopCounDown();
             binding.text.setText("abort");
@@ -62,7 +59,6 @@ public class AlertActivity extends AppCompatActivity {
     protected void onStart() {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(FALL_RECEIVER);
-        intentFilter.addAction(EARTHQUAKE_RECEIVER);
         intentFilter.addAction(Intent.ACTION_POWER_CONNECTED);
         intentFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
         registerReceiver(accelerometerReceiver, intentFilter);
@@ -129,12 +125,8 @@ public class AlertActivity extends AppCompatActivity {
                 timer.start();
             } else if (intent.getAction().equals(Intent.ACTION_POWER_CONNECTED)) {
                 binding.text.setText("charging");
-                startService(earthquakeServiceIntent);
             } else if (intent.getAction().equals(Intent.ACTION_POWER_DISCONNECTED)) {
                 binding.text.setText("unpluged");
-                stopService(earthquakeServiceIntent);
-            } else if (intent.getAction().equals(EARTHQUAKE_RECEIVER)) {
-                binding.text.setText("seismoooooooooos");
             }
         }
     }
