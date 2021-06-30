@@ -10,6 +10,8 @@ import android.os.IBinder;
 
 import androidx.annotation.Nullable;
 
+import java.text.DecimalFormat;
+
 
 public class FallService extends Service implements SensorEventListener {
     SensorManager sensorManager;
@@ -38,7 +40,15 @@ public class FallService extends Service implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
 
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            if (event.values[0] + event.values[1] + event.values[2] > 12) {
+            double loX = event.values[0];
+            double loY = event.values[1];
+            double loZ = event.values[2];
+
+            double loAccelerationReader = Math.sqrt(Math.pow(loX, 2) + Math.pow(loY, 2) + Math.pow(loZ, 2));
+            DecimalFormat precision = new DecimalFormat("0,00");
+            double ldAccRound = Double.parseDouble(precision.format(loAccelerationReader));
+
+            if (ldAccRound > 0.3d && ldAccRound < 0.5d){
                 Intent intent = new Intent();
                 intent.setAction(FALL_RECEIVER);
                 sendBroadcast(intent);

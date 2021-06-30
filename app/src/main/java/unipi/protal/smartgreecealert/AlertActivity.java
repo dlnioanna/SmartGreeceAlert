@@ -45,7 +45,7 @@ public class AlertActivity extends AppCompatActivity {
         accelerometerReceiver = new AccelerometerReceiver();
         fallServiceIntent = new Intent(this, FallService.class);
         binding.abortButton.setOnClickListener(v -> {
-            stopCounDown();
+            stopCountDown();
             binding.text.setText("abort");
             //      startService(fallServiceIntent);
         });
@@ -117,7 +117,7 @@ public class AlertActivity extends AppCompatActivity {
 
                     @Override
                     public void onFinish() {
-                        stopCounDown();
+                        stopCountDown();
                         binding.text.setText("finished");
                         startService(fallServiceIntent);
                     }
@@ -126,7 +126,7 @@ public class AlertActivity extends AppCompatActivity {
             } else if (intent.getAction().equals(Intent.ACTION_POWER_CONNECTED)) {
                 binding.text.setText("charging");
             } else if (intent.getAction().equals(Intent.ACTION_POWER_DISCONNECTED)) {
-                binding.text.setText("unpluged");
+                binding.text.setText("unplugged");
             }
         }
     }
@@ -137,8 +137,8 @@ public class AlertActivity extends AppCompatActivity {
                 .signOut(this).addOnCompleteListener(task -> finish());
     }
 
-    // Called when user cancels the coundown and the message is not sent
-    private void stopCounDown() {
+    // Called when user cancels the countdown and the message is not sent
+    private void stopCountDown() {
         player.stop();
         try {
             player.prepare();
