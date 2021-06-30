@@ -44,6 +44,12 @@ public class AlertActivity extends AppCompatActivity {
         player = MediaPlayer.create(this, R.raw.clock_sound);
         accelerometerReceiver = new AccelerometerReceiver();
         fallServiceIntent = new Intent(this, FallService.class);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(FALL_RECEIVER);
+        intentFilter.addAction(Intent.ACTION_POWER_CONNECTED);
+        intentFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+        registerReceiver(accelerometerReceiver, intentFilter);
+        startService(fallServiceIntent);
         binding.abortButton.setOnClickListener(v -> {
             stopCountDown();
             binding.text.setText("abort");
@@ -51,31 +57,15 @@ public class AlertActivity extends AppCompatActivity {
         });
     }
 
-
-    /**
-     * On start create service so that is active when the app is running
-     */
-    @Override
-    protected void onStart() {
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(FALL_RECEIVER);
-        intentFilter.addAction(Intent.ACTION_POWER_CONNECTED);
-        intentFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
-        registerReceiver(accelerometerReceiver, intentFilter);
-        startService(fallServiceIntent);
-        super.onStart();
-    }
-
     /**
      * When the app exits the service must stop
      */
     @Override
-    protected void onStop() {
+    protected void onDestroy() {
         stopService(fallServiceIntent);
         unregisterReceiver(accelerometerReceiver);
-        super.onStop();
+        super.onDestroy();
     }
-
 
     // create menu on the top left corner to sign out
     @Override
