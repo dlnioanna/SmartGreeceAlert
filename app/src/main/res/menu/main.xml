@@ -9,4 +9,8 @@
         android:id="@+id/action_change_language"
         android:title="@string/language_setting"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_statistics"
+        android:title="@string/statistics_setting"
+        app:showAsAction="never" />
 </menu>
