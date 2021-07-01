@@ -5,13 +5,13 @@ import android.graphics.Bitmap;
 import java.io.Serializable;
 
 public class FireReport implements Serializable {
-    private String latitude ;
-    private String longitude;
-    private String date;
+    private Double latitude ;
+    private Double longitude;
+    private Long date;
     private String photo;
-    private String canceled;
+    private Boolean canceled;
 
-    public FireReport(String latitude, String longitude, String date, String photo, String canceled) {
+    public FireReport(Double latitude, Double longitude, Long date, String photo, Boolean canceled) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.date = date;
@@ -19,27 +19,27 @@ public class FireReport implements Serializable {
         this.canceled = canceled;
     }
 
-    public String getLatitude() {
+    public Double getLatitude() {
         return latitude;
     }
 
-    public void setLatitude(String latitude) {
+    public void setLatitude(Double latitude) {
         this.latitude = latitude;
     }
 
-    public String getLongitude() {
+    public Double getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(String longitude) {
+    public void setLongitude(Double longitude) {
         this.longitude = longitude;
     }
 
-    public String getDate() {
+    public Long getDate() {
         return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(Long date) {
         this.date = date;
     }
 
@@ -51,11 +51,11 @@ public class FireReport implements Serializable {
         this.photo = photo;
     }
 
-    public String getCanceled() {
+    public Boolean getCanceled() {
         return canceled;
     }
 
-    public void setCanceled(String canceled) {
+    public void setCanceled(Boolean canceled) {
         this.canceled = canceled;
     }
 }

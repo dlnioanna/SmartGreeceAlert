@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -36,6 +37,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import unipi.protal.smartgreecealert.databinding.ActivityAlertBinding;
@@ -162,7 +164,7 @@ public class AlertActivity extends AppCompatActivity implements LocationListener
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     // Create FireReport
-                    FireReport fireReport= new FireReport("0.0","0.0", String.valueOf(System.currentTimeMillis()),String.valueOf(bitmap),"false");
+                    FireReport fireReport= new FireReport(1.0,1.0, System.currentTimeMillis(),encodeBitmap(bitmap),false);
                     databaseReference.child(user.getUid()).child(FIRE_REPORT_INSTANCE).setValue(fireReport);
                 }
 
@@ -179,7 +181,12 @@ public class AlertActivity extends AppCompatActivity implements LocationListener
         matrix.postRotate(angle);
         return Bitmap.createBitmap(source,0,0,source.getWidth(),source.getHeight(),matrix,true);
     }
-
+    public String encodeBitmap(Bitmap bitmap) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        String imageEncoded = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+        return imageEncoded;
+    }
     @Override
     public void onLocationChanged(@NonNull Location location) {
         try{
