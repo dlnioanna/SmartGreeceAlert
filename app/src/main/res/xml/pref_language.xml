@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-
-
     <PreferenceCategory android:title="@string/preferences_tittle">
-        <SwitchPreference
-        android:defaultValue="true"
+        <CheckBoxPreference
+            android:defaultValue="true"
         android:key="@string/preferences_greek_key"
         android:title="@string/preferences_greek" />
-        <SwitchPreference
+        <CheckBoxPreference
             android:defaultValue="false"
             android:key="@string/preferences_english_key"
             android:title="@string/preferences_english" />
-        <SwitchPreference
+        <CheckBoxPreference
             android:defaultValue="false"
             android:key="@string/preferences_french_key"
-            android:title="@string/preferences_greek" />
+            android:title="@string/preferences_french" />
     </PreferenceCategory>
 
 </PreferenceScreen>

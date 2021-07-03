@@ -5,12 +5,12 @@
     <string name="sign_out_text">Déconnexion</string>
     <string name="language_setting">Langue</string>
     <string name="abort_button">Annuler</string>
-    <string name="fire_button">Feu!</string>
     <string name="gps_title">Le GPS n\'est pas activé</string>
     <string name="gps_message">Pour continuer, veuillez activer le GPS</string>
     <string name="gps_yes">Oui</string>
     <string name="gps_no">Non</string>
     <string name="statistics_setting">Statistiques</string>
+    <string name="maps_api_key">AIzaSyCaQaIZGhLJcIFWbP-ouDszFh1IobgEsQA</string>
     <!--  Language Preferences  -->
     <string name="preferences_tittle">Επιλογή γλώσσας</string>
 <!--    <string name="preferences_greek_key">greek</string>-->
@@ -19,4 +19,10 @@
     <string name="preferences_english">Anglaise</string>
 <!--    <string name="preferences_french_key">french</string>-->
     <string name="preferences_french">Français</string>
+    <!-- fire string values-->
+    <string name="fire_location_title">Point de feu</string>
+    <string name="fire_button">Alerte incendie</string>
+    <string name="locale_french">fr</string>
+    <string name="fire_report_result_ok">Votre photo a été enregistrée.</string>
+    <string name="fire_report_result_error">Une erreur s\'est produite lors de l\'enregistrement de la photo.</string>
 </resources>

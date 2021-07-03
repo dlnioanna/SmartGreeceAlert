@@ -4,19 +4,28 @@
     <string name="sign_out_text">Αποσύνδεση</string>
     <string name="language_setting">Γλώσσα</string>
     <string name="abort_button">Ακύρωση</string>
-    <string name="fire_button">Φωτιά!</string>
     <string name="gps_title">GPS απενεργοποιημένο</string>
     <string name="gps_message">Για να συνεχίσετε ενεργοποιήστε την τοποθεσία συσκευής.</string>
     <string name="gps_yes">NAI</string>
     <string name="gps_no">ΟΧΙ</string>
     <string name="statistics_setting">Στατιστικά</string>
+    <string name="maps_api_key">AIzaSyCaQaIZGhLJcIFWbP-ouDszFh1IobgEsQA</string>
     <!--  Language Preferences  -->
     <string name="preferences_tittle">Επιλογή γλώσσας</string>
     <string name="preferences_greek_key" translatable="false">greek</string>
     <string name="preferences_greek">Ελληνικά</string>
+    <string name="locale_greek" translatable="false">el</string>
     <string name="preferences_english_key" translatable="false">english</string>
     <string name="preferences_english">Αγγλικά</string>
+    <string name="locale_english" translatable="false">en</string>
     <string name="preferences_french_key" translatable="false">french</string>
     <string name="preferences_french">Γαλλικά</string>
+    <string name="locale_french" translatable="false">fr</string>
+    <string name="locale_key" translatable="false">locale_override</string>
+    <!-- fire string values-->
+    <string name="fire_location_title">Εστία πυρκαγιάς</string>
+    <string name="fire_button">Σήμα κινδύνου πυρκαγιάς</string>
+    <string name="fire_report_result_ok">Η φωτογραφία σας αποθηκεύτηκε.</string>
+    <string name="fire_report_result_error">Παρουσιάστηκε σφάλμα κατά την αποθήκευση.</string>
 
 </resources>

@@ -5,12 +5,12 @@
     <string name="sign_out_text">Sign out</string>
     <string name="language_setting">Language</string>
     <string name="abort_button">Cancel</string>
-    <string name="fire_button">Fire!</string>
     <string name="gps_title">GPS is not enabled</string>
     <string name="gps_message">To continue please activate gps</string>
     <string name="gps_yes">YES</string>
     <string name="gps_no">NO</string>
     <string name="statistics_setting">Statistics</string>
+    <string name="maps_api_key">AIzaSyCaQaIZGhLJcIFWbP-ouDszFh1IobgEsQA</string>
     <!--  Language Preferences  -->
     <string name="preferences_tittle">Επιλογή γλώσσας</string>
 <!--    <string name="preferences_greek_key">greek</string>-->
@@ -19,4 +19,10 @@
     <string name="preferences_english">English</string>
 <!--    <string name="preferences_french_key">french</string>-->
     <string name="preferences_french">French</string>
+    <string name="locale_french">fr</string>
+    <!-- fire string values-->
+    <string name="fire_location_title">Fire spot</string>
+    <string name="fire_button">Fire alert</string>
+    <string name="fire_report_result_ok">Your photo has been saved.</string>
+    <string name="fire_report_result_error">An error occurred while saving photo.</string>
 </resources>

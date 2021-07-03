@@ -4,7 +4,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentTransaction;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -17,17 +20,29 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.util.Base64;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -36,6 +51,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,10 +62,12 @@ import unipi.protal.smartgreecealert.databinding.ActivityAlertBinding;
 import unipi.protal.smartgreecealert.entities.FireReport;
 import unipi.protal.smartgreecealert.services.FallService;
 import unipi.protal.smartgreecealert.settings.SettingsActivity;
+import unipi.protal.smartgreecealert.utils.ImageUtils;
+import unipi.protal.smartgreecealert.utils.SharedPrefsUtils;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
-public class AlertActivity extends AppCompatActivity implements LocationListener {
+public class AlertActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
     private static final String FALL_RECEIVER = "accelerometer_gravity_receiver";
     private static final String FIRE_REPORT_INSTANCE = "fire_report_instance";
     private static final String FIRE_REPORTS = "fire_reports";
@@ -55,17 +75,21 @@ public class AlertActivity extends AppCompatActivity implements LocationListener
     public static final int REQUEST_LOCATION = 1000;
     public static final int TAKE_PICTURE = 2000;
     private ActivityAlertBinding binding;
+    private boolean mapReady = false;
+    private GoogleMap mMap;
+    private LocationManager manager;
+    private Location currentLocation;
+    private LatLng position;
     private Intent fallServiceIntent, earthquakeServiceIntent;
     private MediaPlayer player;
     private AccelerometerReceiver accelerometerReceiver;
     private FirebaseUser user;
     private FirebaseAuth firebaseAuth;
     private FirebaseDatabase firebaseDatabase;
+    private FirebaseStorage firebaseStorage;
+    private StorageReference storageReference;
     private CountDownTimer timer;
-    private LocationManager manager;
-    private LatLng position;
-
-
+    private FirebaseAuth.AuthStateListener authStateListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,8 +97,26 @@ public class AlertActivity extends AppCompatActivity implements LocationListener
         binding = ActivityAlertBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
         setContentView(view);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
         user = getIntent().getParcelableExtra("user");
+        firebaseAuth = FirebaseAuth.getInstance();
+        authStateListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    // User is signed in
+                    user = FirebaseAuth.getInstance().getCurrentUser();
+                } else {
+                    // User is signed out
+                    user = null;
+                }
+            }
+        };
         firebaseDatabase = FirebaseDatabase.getInstance();
+        firebaseStorage = FirebaseStorage.getInstance();
+        storageReference = firebaseStorage.getReference().child(FIRE_REPORTS);
         binding.text.setText(user.getDisplayName());
         player = MediaPlayer.create(this, R.raw.clock_sound);
         accelerometerReceiver = new AccelerometerReceiver();
@@ -90,24 +132,21 @@ public class AlertActivity extends AppCompatActivity implements LocationListener
             binding.text.setText("abort");
             //      startService(fallServiceIntent);
         });
-        binding.fireButton.setOnClickListener(v->{
+        binding.fireButton.setOnClickListener(v -> {
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            startActivityForResult(intent,TAKE_PICTURE);
+            startActivityForResult(intent, TAKE_PICTURE);
         });
         manager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        // todo: να ζητάει άδεια για τους χαρτες μόλις ξεκινάει ή μόλις ο χρήστης πατήσει το κουμπί fire?
+        if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
+        } else {
+            manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+            currentLocation = manager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        }
         startGps();
+
     }
 
-    /**
-     * When the app exits the service must stop
-     */
-    @Override
-    protected void onDestroy() {
-        stopService(fallServiceIntent);
-        unregisterReceiver(accelerometerReceiver);
-        super.onDestroy();
-    }
 
     // create menu on the top right corner
     @Override
@@ -130,14 +169,13 @@ public class AlertActivity extends AppCompatActivity implements LocationListener
         } else if (id == R.id.action_change_language) {
             Intent settingsIntent = new Intent(this, SettingsActivity.class);
             startActivity(settingsIntent);
-        } else if(id == R.id.action_statistics){
+        } else if (id == R.id.action_statistics) {
             Intent statisticsIntent = new Intent(this, StatisticsActivity.class);
             startActivity(statisticsIntent);
         }
 
         return super.onOptionsItemSelected(item);
     }
-
 
 
     // if user has granted permission for location go to MapsActivity
@@ -154,46 +192,78 @@ public class AlertActivity extends AppCompatActivity implements LocationListener
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode==TAKE_PICTURE && resultCode==RESULT_OK){
+        /*
+        After the user has taken a photo he/she can upload it to the firebase. Upload is triggered by
+        saveFireReportPhoto function which stores the photo to firebase storage and then saveFireReport
+        is called to save data as FireInstance on realtime database
+         */
+        if (requestCode == TAKE_PICTURE && resultCode == RESULT_OK) {
+            Long firetime = System.currentTimeMillis();
             Bundle extra = data.getExtras();
             Bitmap bitmap = (Bitmap) extra.get("data");
-            binding.fireImage.setImageBitmap(rotateImage(bitmap,270));
-            DatabaseReference databaseReference = firebaseDatabase.getReference(FIRE_REPORTS);
-            Query query = databaseReference.orderByChild(USER_ID).equalTo(user.getUid());
-            query.addListenerForSingleValueEvent(new ValueEventListener(){
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    // Create FireReport
-                    FireReport fireReport= new FireReport(1.0,1.0, System.currentTimeMillis(),encodeBitmap(bitmap),false);
-                    databaseReference.child(user.getUid()).child(FIRE_REPORT_INSTANCE).setValue(fireReport);
-                }
+            byte[] uploadImage = ImageUtils.encodeBitmap(bitmap);
+            saveFireReportPhoto(uploadImage, firetime);
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });
         }
     }
+// stores photo on firebase storage
+    private void saveFireReportPhoto(byte[] uploadImage, Long firetime) {
+        StorageReference photoRef = storageReference.child(user.getUid()).child(firetime.toString());
+        UploadTask uploadTask = photoRef.putBytes(uploadImage);
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            // in case the upload fails the user is informed by a Toast message
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                Toast.makeText(getApplicationContext(), getString(R.string.fire_report_result_error), Toast.LENGTH_SHORT).show();
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            // if the upload of the photo is succesful saveFireReport is called and the uri of the photo is passed in as a parameter
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Uri uri = taskSnapshot.getUploadSessionUri();
+                saveFireReport(uri,firetime);
+            }
+        });
+    }
 
-    Bitmap rotateImage(Bitmap source, float angle){
-        Matrix matrix = new Matrix();
-        matrix.postRotate(angle);
-        return Bitmap.createBitmap(source,0,0,source.getWidth(),source.getHeight(),matrix,true);
+    // stores fire instance on realtime database and informs the user with a Toas message if the upload is succesful or not
+    private void saveFireReport(Uri uri, Long time){
+        DatabaseReference dbref = firebaseDatabase.getReference(FIRE_REPORTS);
+        FireReport fireReport = new FireReport(currentLocation.getLatitude(),currentLocation.getLongitude(),time,uri.toString(),false);
+        dbref.child(user.getUid()).child(time.toString()).setValue(fireReport)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        // Write was successful!
+                        Toast.makeText(getApplicationContext(), getString(R.string.fire_report_result_ok), Toast.LENGTH_SHORT).show();
+                        //todo den allazei xroma kai den apothikeuei to pin
+                        mMap.addMarker(new MarkerOptions().position(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()))
+                                .title(getString(R.string.fire_location_title)).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Write failed
+                        Toast.makeText(getApplicationContext(), getString(R.string.fire_report_result_error), Toast.LENGTH_SHORT).show();
+                    }
+                });
+
     }
-    public String encodeBitmap(Bitmap bitmap) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        String imageEncoded = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
-        return imageEncoded;
-    }
+
+    // On every location change ui is updated
     @Override
     public void onLocationChanged(@NonNull Location location) {
-        try{
-            position = new LatLng(location.getLatitude(), location.getLongitude());
-        }catch (Exception e){
-            e.printStackTrace();
+        currentLocation = location;
+        position = new LatLng(location.getLatitude(), location.getLongitude());
+        try {
+            mMap.clear();
+        } catch (NullPointerException ne) {
+            ne.printStackTrace();
         }
+        mMap.addMarker(new MarkerOptions().position(new LatLng(position.latitude, position.longitude)));
+        CameraPosition target = CameraPosition.builder().target(position).zoom(14).build();
+        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(target));
     }
 
     @Override
@@ -209,6 +279,67 @@ public class AlertActivity extends AppCompatActivity implements LocationListener
     @Override
     public void onProviderDisabled(@NonNull String provider) {
 
+    }
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        Log.e("onMapReady", "onMapReady");
+        mMap = googleMap;
+        mapReady = true;
+        try {
+            // when map loads get current location
+            position = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+            mMap.addMarker(new MarkerOptions().position(new LatLng(position.latitude, position.longitude)));
+            // camera focus on current location
+            CameraPosition target = CameraPosition.builder().target(position).zoom(14).build();
+            mMap.moveCamera(CameraUpdateFactory.newCameraPosition(target));
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(target), 2000, null);
+        } catch (NullPointerException ne) {
+            ne.printStackTrace();
+        }
+
+
+    }
+
+    /*
+   Method used by to check if the gps is enabled, if access to location is permited
+    */
+    private void startGps() {
+        // if gps is not enabled show message that asks to enable it
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            showGPSDiabledDialog();
+        } else {
+            // if permission is not granted ask for it
+            if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
+            } else {
+                // if permission is granted go to MapsActivity
+                manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+            }
+        }
+    }
+
+    // if gps is not enabled shows dialog that informs user to enable it from phone settings
+    public void showGPSDiabledDialog() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+        alertDialog.setTitle(getString(R.string.gps_title));
+        alertDialog.setMessage(getString(R.string.gps_message));
+        alertDialog.setPositiveButton(getString(R.string.gps_yes), new DialogInterface.OnClickListener() {
+            // if user agrees to enable gps go to system settings
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Intent onGPS = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                startActivity(onGPS);
+            }
+        }).setNegativeButton(getString(R.string.gps_no), new DialogInterface.OnClickListener() {
+            // if user selects no dialog disappears
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                onBackPressed();
+            }
+        });
+        alertDialog.create();
+        alertDialog.show();
     }
 
     /**
@@ -266,43 +397,65 @@ public class AlertActivity extends AppCompatActivity implements LocationListener
         stopService(fallServiceIntent);
     }
 
-    /*
-   Method used by to check if the gps is enabled, if access to location is permited
-    */
-    private void startGps() {
-        // if gps is not enabled show message that asks to enable it
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            showGPSDiabledDialog();
-        } else {
-            // if permission is not granted ask for it
-            if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
-            } else {
-                // if permission is granted go to MapsActivity
-                manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-            }
+
+    private void restartActivity() {
+        Intent intent = getIntent();
+        finish();
+        startActivity(intent);
+    }
+
+    @Override
+    protected void onPause() {
+        if (authStateListener != null) {
+            firebaseAuth.removeAuthStateListener(authStateListener);
         }
+        Log.e("on pause ", user.getDisplayName());
+        super.onPause();
     }
-    // if gps is not enabled shows dialog that informs user to enable it from phone settings
-    public void showGPSDiabledDialog() {
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-        alertDialog.setTitle(getString(R.string.gps_title));
-        alertDialog.setMessage(getString(R.string.gps_message));
-        alertDialog.setPositiveButton(getString(R.string.gps_yes), new DialogInterface.OnClickListener() {
-            // if user agrees to enable gps go to system settings
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Intent onGPS = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                startActivity(onGPS);
-            }
-        }).setNegativeButton(getString(R.string.gps_no), new DialogInterface.OnClickListener() {
-            // if user selects no dialog disappears
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                onBackPressed();
-            }
-        });
-        alertDialog.create();
-        alertDialog.show();
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        firebaseAuth.addAuthStateListener(authStateListener);
+        Log.e("on resume ", user.getDisplayName());
     }
+
+    @Override
+    protected void onDestroy() {
+        stopService(fallServiceIntent);
+        unregisterReceiver(accelerometerReceiver);
+        Log.e("onDestroy ", user.getDisplayName());
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onStop() {
+        Log.e("onStop ", user.getDisplayName());
+        super.onStop();
+    }
+
+    // save data to prevent losing them on screen rotation when app is running but not shown
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        outState.putParcelable("f_user", user);
+        Log.e("on onSaveInstanceState ", user.getDisplayName());
+        super.onSaveInstanceState(outState);
+    }
+
+    // restore data that have been saved on onSaveInstanceState
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        user = savedInstanceState.getParcelable("f_user");
+        Log.e("on onRestoreInstanceState ", user.getDisplayName());
+    }
+
+    @Override
+    protected void onStart() {
+        Log.e("onStart", user.getDisplayName());
+        startService(fallServiceIntent);
+        super.onStart();
+    }
+
+
 }

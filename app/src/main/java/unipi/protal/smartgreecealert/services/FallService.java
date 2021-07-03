@@ -46,7 +46,13 @@ public class FallService extends Service implements SensorEventListener {
 
             double loAccelerationReader = Math.sqrt(Math.pow(loX, 2) + Math.pow(loY, 2) + Math.pow(loZ, 2));
             DecimalFormat precision = new DecimalFormat("0,00");
-            double ldAccRound = Double.parseDouble(precision.format(loAccelerationReader));
+            double ldAccRound =0.0;
+            try {
+                ldAccRound  = Double.parseDouble(precision.format(loAccelerationReader));
+            }catch (NumberFormatException ne){
+                ne.printStackTrace();
+            }
+
 
             if (ldAccRound > 0.3d && ldAccRound < 0.5d){
                 Intent intent = new Intent();

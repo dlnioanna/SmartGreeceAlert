@@ -1,65 +1,97 @@
 package unipi.protal.smartgreecealert.settings;
 
-import android.content.SharedPreferences;
+import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Bundle;
-import android.preference.PreferenceFragment;
-import android.widget.Toast;
 
+import androidx.preference.CheckBoxPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
-import androidx.preference.PreferenceManager;
-import androidx.preference.SwitchPreference;
-import androidx.preference.SwitchPreferenceCompat;
+
+import java.util.Locale;
 
 import unipi.protal.smartgreecealert.R;
+import unipi.protal.smartgreecealert.utils.SharedPrefsUtils;
 
-public class SettingsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceClickListener{
-    private Preference greekPreference, frenchPreference, englishPreference;
+public class SettingsFragment extends PreferenceFragmentCompat {
+    private CheckBoxPreference greekPreference, frenchPreference, englishPreference;
+
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         addPreferencesFromResource(R.xml.pref_language);
+        String localeGR = getString(R.string.locale_greek);
+        String localeEN = getString(R.string.locale_english);
+        String localeFR = getString(R.string.locale_french);
         greekPreference = this.findPreference(getString(R.string.preferences_greek_key));
-        greekPreference.setOnPreferenceClickListener(this);
+        greekPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference,
+                                              Object newValue) {
+                greekPreference.setChecked(true);
+                englishPreference.setChecked(false);
+                frenchPreference.setChecked(false);
+                SharedPrefsUtils.updateLanguage(getContext(),localeGR);
+                return true;
+            }
+        });
         englishPreference = this.findPreference(getString(R.string.preferences_english_key));
-        englishPreference.setOnPreferenceClickListener(this);
+        englishPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference,
+                                              Object newValue) {
+                greekPreference.setChecked(false);
+                englishPreference.setChecked(true);
+                frenchPreference.setChecked(false);
+                SharedPrefsUtils.updateLanguage(getContext(),localeEN);
+                return true;
+            }
+        });
         frenchPreference = this.findPreference(getString(R.string.preferences_french_key));
-        frenchPreference.setOnPreferenceClickListener(this);
+        frenchPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference,
+                                              Object newValue) {
+                greekPreference.setChecked(false);
+                englishPreference.setChecked(false);
+                frenchPreference.setChecked(true);
+                SharedPrefsUtils.updateLanguage(getContext(),localeFR);
+                return true;
+            }
+        });
+    }
+
+    private Context updateResourcesLocale(Context context, Locale locale) {
+        Configuration configuration = new Configuration(context.getResources().getConfiguration());
+        configuration.setLocale(locale);
+        return context.createConfigurationContext(configuration);
     }
 
 
-//    @Override
-//    public boolean onPreferenceChange(Preference preference, Object newValue) {
-//        if(preference.getKey()==getString(R.string.preferences_greek_key)){
-//            Toast.makeText(getContext(), "change language", Toast.LENGTH_SHORT).show();
-//        }
-//        return false;
+    public CheckBoxPreference getEnglishPreference() {
+        return englishPreference;
+    }
+//    public String getCurrentLanguage(Context ctx)
+//    {
+//        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
+//        String lang = prefs.getString(getString(R.string.locale_key), getString(R.string.locale_greek));
+//        return lang;
+//    }
+//
+//    public void updateLanguage(Context ctx, String lang)
+//    {
+//        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(ctx);
+//        Configuration cfg = new Configuration();
+//        ctx.getResources().updateConfiguration(cfg, null);
+//        SharedPreferences.Editor editor = sharedPreferences.edit();
+//        editor.putString(getString(R.string.locale_key), lang);
+//        editor.apply();
 //    }
 
-    @Override
-    public boolean onPreferenceClick(Preference preference) {
-        if(preference.getKey()==getString(R.string.preferences_greek_key)){
+//    public static void changeLocale(Context context, String locale) {
+//        Resources res = context.getResources();
+//        Configuration conf = res.getConfiguration();
+//        conf.locale = new Locale(locale);
+//        res.updateConfiguration(conf, res.getDisplayMetrics());
+//    }
 
-            if(!preference.isEnabled()){
-                Toast.makeText(getContext(), "greek", Toast.LENGTH_SHORT).show();
-                greekPreference.setEnabled(true);
-                englishPreference.setEnabled(false);
-                frenchPreference.setEnabled(false);
-            }
-        }else if(preference.getKey()==getString(R.string.preferences_english_key)){
-//            Toast.makeText(getContext(), "english", Toast.LENGTH_SHORT).show();
-            if(!englishPreference.isEnabled()){
-                greekPreference.setEnabled(false);
-                englishPreference.setEnabled(true);
-                frenchPreference.setEnabled(false);
-            }
-        }else if(preference.getKey()==getString(R.string.preferences_french_key)){
-//            Toast.makeText(getContext(), "french", Toast.LENGTH_SHORT).show();
-            if(!frenchPreference.isEnabled()){
-                greekPreference.setEnabled(false);
-                englishPreference.setEnabled(false);
-                frenchPreference.setEnabled(true);
-            }
-        }
-        return false;
-    }
 }

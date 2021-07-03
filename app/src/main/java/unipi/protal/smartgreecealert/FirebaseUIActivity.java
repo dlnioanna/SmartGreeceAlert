@@ -63,9 +63,7 @@ public class FirebaseUIActivity extends AppCompatActivity {
         if(user==null){
             createSignInIntent();
         }
-
     }
-
 
     public void createSignInIntent() {
         // Choose authentication providers
@@ -119,5 +117,6 @@ public class FirebaseUIActivity extends AppCompatActivity {
         super.onPause();
         firebaseAuth.removeAuthStateListener(authStateListener);
     }
+
 
 }
