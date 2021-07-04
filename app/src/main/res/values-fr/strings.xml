@@ -25,4 +25,7 @@
     <string name="locale_french">fr</string>
     <string name="fire_report_result_ok">Votre photo a été enregistrée.</string>
     <string name="fire_report_result_error">Une erreur s\'est produite lors de l\'enregistrement de la photo.</string>
+    <string name="fire_sms_message_0">Je suis à un endroit avec la longitude :</string>
+    <string name="fire_sms_message_1">et latitude :</string>
+    <string name="fire_sms_message_2">et il y a un incendie.</string>
 </resources>

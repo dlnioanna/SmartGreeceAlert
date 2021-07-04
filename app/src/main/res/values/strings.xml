@@ -27,5 +27,8 @@
     <string name="fire_button">Σήμα κινδύνου πυρκαγιάς</string>
     <string name="fire_report_result_ok">Η φωτογραφία σας αποθηκεύτηκε.</string>
     <string name="fire_report_result_error">Παρουσιάστηκε σφάλμα κατά την αποθήκευση.</string>
+    <string name="fire_sms_message_0">Βρίσκομαι στην τοποθεσία με γεωγραφικό μήκος :</string>
+    <string name="fire_sms_message_1">και γεωγραφικό πλάτος :</string>
+    <string name="fire_sms_message_2">και παρατηρώ μια πυρκαγιά.</string>
 
 </resources>

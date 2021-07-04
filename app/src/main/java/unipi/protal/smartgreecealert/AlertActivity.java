@@ -5,6 +5,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import android.app.PendingIntent;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -21,6 +23,8 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.telephony.SmsManager;
+import android.text.SpannableString;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -42,6 +46,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.core.utilities.Utilities;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -55,14 +60,18 @@ import unipi.protal.smartgreecealert.settings.SettingsActivity;
 import unipi.protal.smartgreecealert.utils.ImageUtils;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.SEND_SMS;
+import static android.Manifest.permission.SMS_FINANCIAL_TRANSACTIONS;
 
 public class AlertActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
     private static final String FALL_RECEIVER = "accelerometer_gravity_receiver";
     private static final String FIRE_REPORT_INSTANCE = "fire_report_instance";
     private static final String FIRE_REPORTS = "fire_reports";
     private static final String USER_ID = "user_id";
-    public static final int REQUEST_LOCATION = 1000;
+    public static final int REQUEST_PERMITIONS = 1000;
+    //    public static final int REQUEST_SMS = 1100;
     public static final int TAKE_PICTURE = 2000;
+
     private ActivityAlertBinding binding;
     private boolean mapReady = false;
     private GoogleMap mMap;
@@ -78,6 +87,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private FirebaseStorage firebaseStorage;
     private StorageReference storageReference;
     private CountDownTimer timer;
+    private FirebaseAuth.AuthStateListener authStateListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +98,20 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         user = getIntent().getParcelableExtra("user");
+        firebaseAuth = FirebaseAuth.getInstance();
+        authStateListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    // User is signed in
+                    user = FirebaseAuth.getInstance().getCurrentUser();
+                } else {
+                    // User is signed out
+                    user = null;
+                }
+            }
+        };
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseDatabase = FirebaseDatabase.getInstance();
         firebaseStorage = FirebaseStorage.getInstance();
@@ -110,14 +134,22 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         binding.fireButton.setOnClickListener(v -> {
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             startActivityForResult(intent, TAKE_PICTURE);
+            sendTextMessage();
         });
         manager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
+        if ((ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) ||
+                (ActivityCompat.checkSelfPermission(this, SEND_SMS) != PackageManager.PERMISSION_DENIED)) {
+            ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION, SEND_SMS}, REQUEST_PERMITIONS);
         } else {
             manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
             currentLocation = manager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         }
+//        if ((ActivityCompat.checkSelfPermission(this, SEND_SMS) != PackageManager.PERMISSION_GRANTED)) {
+//            ActivityCompat.requestPermissions(this, new String[]{SEND_SMS}, REQUEST_SMS);
+//        } else {
+//           signOut();
+//        }
+
         startGps();
 
     }
@@ -153,13 +185,15 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     }
 
 
-    // if user has granted permission for location go to MapsActivity
+    // if user has not granted permission for location and sms he is signed out
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_LOCATION && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-            if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+        if (requestCode == REQUEST_PERMITIONS) {
+            for (int i = 0; i < grantResults.length; i++) {
+                if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
+                    signOut();
+                }
             }
         }
     }
@@ -181,7 +215,8 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
         }
     }
-// stores photo on firebase storage
+
+    // stores photo on firebase storage
     private void saveFireReportPhoto(byte[] uploadImage, Long firetime) {
         StorageReference photoRef = storageReference.child(user.getUid()).child(firetime.toString());
         UploadTask uploadTask = photoRef.putBytes(uploadImage);
@@ -196,15 +231,15 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 Uri uri = taskSnapshot.getUploadSessionUri();
-                saveFireReport(uri,firetime);
+                saveFireReport(uri, firetime);
             }
         });
     }
 
     // stores fire instance on realtime database and informs the user with a Toas message if the upload is succesful or not
-    private void saveFireReport(Uri uri, Long time){
+    private void saveFireReport(Uri uri, Long time) {
         DatabaseReference dbref = firebaseDatabase.getReference(FIRE_REPORTS);
-        FireReport fireReport = new FireReport(currentLocation.getLatitude(),currentLocation.getLongitude(),time,uri.toString(),false);
+        FireReport fireReport = new FireReport(currentLocation.getLatitude(), currentLocation.getLongitude(), time, uri.toString(), false);
         dbref.child(user.getUid()).child(time.toString()).setValue(fireReport)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
@@ -230,6 +265,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     public void onLocationChanged(@NonNull Location location) {
         currentLocation = location;
+        Log.i("CURRENT LOCATION ",currentLocation.getLatitude()+" "+currentLocation.getLongitude());
         position = new LatLng(location.getLatitude(), location.getLongitude());
         try {
             mMap.clear();
@@ -258,10 +294,8 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
-        Log.e("onMapReady", "onMapReady");
         mMap = googleMap;
         mapReady = true;
-        Log.e("on map ready ", "map ready");
         try {
             // when map loads get current location
             position = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
@@ -287,7 +321,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         } else {
             // if permission is not granted ask for it
             if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
+                ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, REQUEST_PERMITIONS);
             } else {
                 // if permission is granted go to MapsActivity
                 manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
@@ -429,5 +463,24 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         super.onStart();
     }
 
+    private void sendTextMessage() {
+        String phoneNumber = "6932474176";
+//        String phoneNumber = "6947679760";
+        StringBuilder builder = new StringBuilder();
+        builder.append(getString(R.string.fire_sms_message_0))
+//                .append(currentLocation.getLongitude())
+                .append(1.0)
+                .append(getString(R.string.fire_sms_message_1))
+//                .append(currentLocation.getLatitude())
+                .append(1.0)
+                .append(getString(R.string.fire_sms_message_2));
+        Intent fireIntent = new Intent(getApplicationContext(), AlertActivity.class);
+        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0, fireIntent, 0);
+        SmsManager sms = SmsManager.getDefault();
+        sms.sendTextMessage(phoneNumber, null, builder.toString(), pi, null);
+        Toast.makeText(getApplicationContext(), "Message Sent successfully!",
+                Toast.LENGTH_LONG).show();
+
+    }
 
 }

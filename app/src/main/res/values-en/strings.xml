@@ -25,4 +25,7 @@
     <string name="fire_button">Fire alert</string>
     <string name="fire_report_result_ok">Your photo has been saved.</string>
     <string name="fire_report_result_error">An error occurred while saving photo.</string>
+    <string name="fire_sms_message_0">I am at a place with longitude :</string>
+    <string name="fire_sms_message_1">and latitude :</string>
+    <string name="fire_sms_message_2">and there is a fire.</string>
 </resources>
