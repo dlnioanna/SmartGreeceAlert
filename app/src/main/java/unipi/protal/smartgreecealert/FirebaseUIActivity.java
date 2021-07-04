@@ -26,7 +26,6 @@ public class FirebaseUIActivity extends AppCompatActivity {
     // Firebase instance variables
     private FirebaseAuth firebaseAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
-    private FirebaseDatabase firebaseDatabase;
     private ActivityFirebaseUiBinding binding;
     private LocationManager manager;
     private FirebaseUser user;
@@ -42,7 +41,6 @@ public class FirebaseUIActivity extends AppCompatActivity {
         setContentView(view);
         // Initialize Firebase components
         firebaseAuth = FirebaseAuth.getInstance();
-        firebaseDatabase = FirebaseDatabase.getInstance();
         intent = new Intent(this, AlertActivity.class);
         // prevent from re-creating sign in ui when rotating screen or leaving screen
         authStateListener = new FirebaseAuth.AuthStateListener() {

@@ -69,9 +69,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private static final String FIRE_REPORTS = "fire_reports";
     private static final String USER_ID = "user_id";
     public static final int REQUEST_PERMITIONS = 1000;
-    //    public static final int REQUEST_SMS = 1100;
     public static final int TAKE_PICTURE = 2000;
-
     private ActivityAlertBinding binding;
     private boolean mapReady = false;
     private GoogleMap mMap;
@@ -144,12 +142,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
             currentLocation = manager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         }
-//        if ((ActivityCompat.checkSelfPermission(this, SEND_SMS) != PackageManager.PERMISSION_GRANTED)) {
-//            ActivityCompat.requestPermissions(this, new String[]{SEND_SMS}, REQUEST_SMS);
-//        } else {
-//           signOut();
-//        }
-
         startGps();
 
     }
@@ -207,6 +199,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         is called to save data as FireInstance on realtime database
          */
         if (requestCode == TAKE_PICTURE && resultCode == RESULT_OK) {
+            user=firebaseAuth.getCurrentUser();
             Long firetime = System.currentTimeMillis();
             Bundle extra = data.getExtras();
             Bitmap bitmap = (Bitmap) extra.get("data");
@@ -440,10 +433,18 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         super.onStop();
     }
 
+    @Override
+    protected void onStart() {
+        Log.e("onStart", user.getDisplayName());
+        startService(fallServiceIntent);
+        super.onStart();
+    }
+
     // save data to prevent losing them on screen rotation when app is running but not shown
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         outState.putParcelable("f_user", user);
+        outState.putParcelable("current_location", currentLocation);
         Log.e("on onSaveInstanceState ", user.getDisplayName());
         super.onSaveInstanceState(outState);
     }
@@ -453,14 +454,8 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         user = savedInstanceState.getParcelable("f_user");
+        currentLocation = savedInstanceState.getParcelable("current_location");
         Log.e("on onRestoreInstanceState ", user.getDisplayName());
-    }
-
-    @Override
-    protected void onStart() {
-        Log.e("onStart", user.getDisplayName());
-        startService(fallServiceIntent);
-        super.onStart();
     }
 
     private void sendTextMessage() {
