@@ -4,10 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.FragmentTransaction;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -15,7 +12,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Matrix;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -25,7 +21,6 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -45,17 +40,12 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import unipi.protal.smartgreecealert.databinding.ActivityAlertBinding;
@@ -63,7 +53,6 @@ import unipi.protal.smartgreecealert.entities.FireReport;
 import unipi.protal.smartgreecealert.services.FallService;
 import unipi.protal.smartgreecealert.settings.SettingsActivity;
 import unipi.protal.smartgreecealert.utils.ImageUtils;
-import unipi.protal.smartgreecealert.utils.SharedPrefsUtils;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
@@ -89,7 +78,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private FirebaseStorage firebaseStorage;
     private StorageReference storageReference;
     private CountDownTimer timer;
-    private FirebaseAuth.AuthStateListener authStateListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,19 +89,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         mapFragment.getMapAsync(this);
         user = getIntent().getParcelableExtra("user");
         firebaseAuth = FirebaseAuth.getInstance();
-        authStateListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-                    // User is signed in
-                    user = FirebaseAuth.getInstance().getCurrentUser();
-                } else {
-                    // User is signed out
-                    user = null;
-                }
-            }
-        };
         firebaseDatabase = FirebaseDatabase.getInstance();
         firebaseStorage = FirebaseStorage.getInstance();
         storageReference = firebaseStorage.getReference().child(FIRE_REPORTS);
@@ -128,9 +103,9 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         registerReceiver(accelerometerReceiver, intentFilter);
         startService(fallServiceIntent);
         binding.abortButton.setOnClickListener(v -> {
-            stopCountDown();
+            stopCountDown(); // coundown stops
             binding.text.setText("abort");
-            //      startService(fallServiceIntent);
+            startService(fallServiceIntent); // service is registered again
         });
         binding.fireButton.setOnClickListener(v -> {
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -182,7 +157,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_LOCATION && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (requestCode == REQUEST_LOCATION && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
             if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
             }
@@ -286,6 +261,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         Log.e("onMapReady", "onMapReady");
         mMap = googleMap;
         mapReady = true;
+        Log.e("on map ready ", "map ready");
         try {
             // when map loads get current location
             position = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
@@ -406,9 +382,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
     @Override
     protected void onPause() {
-        if (authStateListener != null) {
-            firebaseAuth.removeAuthStateListener(authStateListener);
-        }
         Log.e("on pause ", user.getDisplayName());
         super.onPause();
     }
@@ -416,7 +389,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     protected void onResume() {
         super.onResume();
-        firebaseAuth.addAuthStateListener(authStateListener);
         Log.e("on resume ", user.getDisplayName());
     }
 
