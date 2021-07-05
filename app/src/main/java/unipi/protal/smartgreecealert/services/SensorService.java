@@ -1,7 +1,12 @@
 package unipi.protal.smartgreecealert.services;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -9,24 +14,36 @@ import android.hardware.SensorManager;
 import android.os.IBinder;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 
-import java.text.DecimalFormat;
 import java.time.Instant;
 
+import unipi.protal.smartgreecealert.R;
 
-public class FallService extends Service implements SensorEventListener {
+
+public class SensorService extends Service implements SensorEventListener {
     SensorManager sensorManager;
     Sensor accelerometerSensor;
     private static final String FALL_RECEIVER = "accelerometer_gravity_receiver";
     FallingState state;
     long freeFallTime;
+    static boolean isPowerConnected;
+    PowerConnectionReceiver powerConnectionReceiver;
 
-    public FallService() {
+    public SensorService() {
     }
 
     @Override
     public void onCreate() {
+        //Init FallingState
         state = FallingState.INIT_STATE;
+        //Power Connection Intent
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_POWER_CONNECTED);
+        filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+        powerConnectionReceiver = new PowerConnectionReceiver();
+        registerReceiver(powerConnectionReceiver, filter);
+        //Init Sensor Manager
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
     }
@@ -51,9 +68,13 @@ public class FallService extends Service implements SensorEventListener {
 
             /* Vector length calculation */
             double acceleration = Math.sqrt(Math.pow(gX, 2) + Math.pow(gY, 2) + Math.pow(gZ, 2));
-            /* Call Fall Detection method */
-            fallDetection(acceleration);
 
+            if(!isPowerConnected){
+                /* Call fall detection method */
+                fallDetection(acceleration);
+            }
+            /* Call earthquake detection method */
+            else earthquakeDetect(acceleration);
         }
     }
 
@@ -114,6 +135,10 @@ public class FallService extends Service implements SensorEventListener {
         }
     }
 
+    public void earthquakeDetect(double acceleration){
+        System.out.println("EarthQuake Detection!");
+    }
+
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
@@ -124,7 +149,7 @@ public class FallService extends Service implements SensorEventListener {
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        sensorManager.registerListener(FallService.this, accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(SensorService.this, accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -133,10 +158,10 @@ public class FallService extends Service implements SensorEventListener {
      */
     @Override
     public void onDestroy() {
-        sensorManager.unregisterListener(FallService.this, accelerometerSensor);
+        sensorManager.unregisterListener(SensorService.this, accelerometerSensor);
+        unregisterReceiver(powerConnectionReceiver); //TODO: Is it the correct?
         super.onDestroy();
     }
-
 }
 
 // Fall Detection Enumerator
@@ -145,4 +170,33 @@ enum FallingState {
     FREE_FALL_DETECTED,
     IMPACT_DETECTED,
     IMMOBILITY_DETECTED
+}
+
+class PowerConnectionReceiver extends BroadcastReceiver{
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (intent.getAction().equals(Intent.ACTION_POWER_CONNECTED)){
+//            buildNotification(context,"765", "myChannel", "Power", "Charging!");
+            SensorService.isPowerConnected = true;
+        }
+        else if (intent.getAction().equals(Intent.ACTION_POWER_DISCONNECTED)){
+            SensorService.isPowerConnected = false;
+        }
+    }
+
+//    void buildNotification(Context context, String channelId, String channelName, String title, String message){
+//        NotificationChannel channel = new NotificationChannel(channelId, channelName,
+//                NotificationManager.IMPORTANCE_DEFAULT);
+//        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+//        manager.createNotificationChannel(channel);
+//
+//        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
+//        builder.setContentTitle(title)
+//                .setContentText(message)
+//                .setSmallIcon(R.drawable.ic_launcher_foreground)
+//                .setAutoCancel(true);
+//
+//        manager.notify(1, builder.build());
+//    }
 }

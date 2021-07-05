@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.app.PendingIntent;
-import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -24,7 +23,6 @@ import android.os.CountDownTimer;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.telephony.SmsManager;
-import android.text.SpannableString;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -46,7 +44,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.core.utilities.Utilities;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -55,20 +52,19 @@ import java.io.IOException;
 
 import unipi.protal.smartgreecealert.databinding.ActivityAlertBinding;
 import unipi.protal.smartgreecealert.entities.FireReport;
-import unipi.protal.smartgreecealert.services.FallService;
+import unipi.protal.smartgreecealert.services.SensorService;
 import unipi.protal.smartgreecealert.settings.SettingsActivity;
 import unipi.protal.smartgreecealert.utils.ImageUtils;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.SEND_SMS;
-import static android.Manifest.permission.SMS_FINANCIAL_TRANSACTIONS;
 
 public class AlertActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
     private static final String FALL_RECEIVER = "accelerometer_gravity_receiver";
     private static final String FIRE_REPORT_INSTANCE = "fire_report_instance";
     private static final String FIRE_REPORTS = "fire_reports";
     private static final String USER_ID = "user_id";
-    public static final int REQUEST_PERMITIONS = 1000;
+    public static final int REQUEST_PERMISSIONS = 1000;
     public static final int TAKE_PICTURE = 2000;
     private ActivityAlertBinding binding;
     private boolean mapReady = false;
@@ -76,7 +72,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private LocationManager manager;
     private Location currentLocation;
     private LatLng position;
-    private Intent fallServiceIntent, earthquakeServiceIntent;
+    private Intent sensorServiceIntent, earthquakeServiceIntent;
     private MediaPlayer player;
     private AccelerometerReceiver accelerometerReceiver;
     private FirebaseUser user;
@@ -95,7 +91,8 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         setContentView(view);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        user = getIntent().getParcelableExtra("user");
+//        user = getIntent().getParcelableExtra("user");
+        user = FirebaseAuth.getInstance().getCurrentUser();
         firebaseAuth = FirebaseAuth.getInstance();
         authStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -114,20 +111,20 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         firebaseDatabase = FirebaseDatabase.getInstance();
         firebaseStorage = FirebaseStorage.getInstance();
         storageReference = firebaseStorage.getReference().child(FIRE_REPORTS);
-        binding.text.setText(user.getDisplayName());
+        binding.text.setText(user.getDisplayName()); //TODO: Null Bug: binding.text.setText(user.getDisplayName()); Status: fixed?
         player = MediaPlayer.create(this, R.raw.clock_sound);
         accelerometerReceiver = new AccelerometerReceiver();
-        fallServiceIntent = new Intent(this, FallService.class);
+        sensorServiceIntent = new Intent(this, SensorService.class);
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(FALL_RECEIVER);
         intentFilter.addAction(Intent.ACTION_POWER_CONNECTED);
         intentFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
         registerReceiver(accelerometerReceiver, intentFilter);
-        startService(fallServiceIntent);
+        startService(sensorServiceIntent);
         binding.abortButton.setOnClickListener(v -> {
-            stopCountDown(); // coundown stops
+            stopCountDown(); // countdown stops
             binding.text.setText("abort");
-            startService(fallServiceIntent); // service is registered again
+            startService(sensorServiceIntent); // service is registered again
         });
         binding.fireButton.setOnClickListener(v -> {
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -137,7 +134,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         manager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if ((ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) ||
                 (ActivityCompat.checkSelfPermission(this, SEND_SMS) != PackageManager.PERMISSION_DENIED)) {
-            ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION, SEND_SMS}, REQUEST_PERMITIONS);
+            ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION, SEND_SMS}, REQUEST_PERMISSIONS);
         } else {
             manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
             currentLocation = manager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -156,7 +153,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
     /*
      Every time the user selects one option from the top right menu
-     an action is being trggered
+     an action is being triggered
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -181,7 +178,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_PERMITIONS) {
+        if (requestCode == REQUEST_PERMISSIONS) {
             for (int i = 0; i < grantResults.length; i++) {
                 if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
                     signOut();
@@ -314,7 +311,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         } else {
             // if permission is not granted ask for it
             if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, REQUEST_PERMITIONS);
+                ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, REQUEST_PERMISSIONS);
             } else {
                 // if permission is granted go to MapsActivity
                 manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
@@ -352,7 +349,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(FALL_RECEIVER)) {
-                stopService(fallServiceIntent);
+                stopService(sensorServiceIntent);
                 timer = new CountDownTimer(10000, 1000) {
                     @Override
                     public void onTick(long l) {
@@ -365,7 +362,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                     public void onFinish() {
                         stopCountDown();
                         binding.text.setText("finished");
-                        startService(fallServiceIntent);
+                        startService(sensorServiceIntent);
                     }
                 };
                 timer.start();
@@ -397,7 +394,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             ne.printStackTrace();
         }
         binding.abortButton.setVisibility(View.GONE);
-        stopService(fallServiceIntent);
+        stopService(sensorServiceIntent);
     }
 
 
@@ -421,7 +418,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
     @Override
     protected void onDestroy() {
-        stopService(fallServiceIntent);
+        stopService(sensorServiceIntent);
         unregisterReceiver(accelerometerReceiver);
         Log.e("onDestroy ", user.getDisplayName());
         super.onDestroy();
@@ -436,7 +433,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     protected void onStart() {
         Log.e("onStart", user.getDisplayName());
-        startService(fallServiceIntent);
+        startService(sensorServiceIntent);
         super.onStart();
     }
 
@@ -459,8 +456,8 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     }
 
     private void sendTextMessage() {
-        String phoneNumber = "6932474176";
-//        String phoneNumber = "6947679760";
+//        String phoneNumber = "6932474176";
+        String phoneNumber = "6947679760";
         StringBuilder builder = new StringBuilder();
         builder.append(getString(R.string.fire_sms_message_0))
 //                .append(currentLocation.getLongitude())

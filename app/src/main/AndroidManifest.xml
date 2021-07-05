@@ -51,8 +51,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".AlertActivity" />
         </activity>
-
-        <service android:name=".services.FallService" />
+        <service
+            android:name=".services.SensorService"
+            android:enabled="true"
+            android:exported="true" />
     </application>
 
 </manifest>
