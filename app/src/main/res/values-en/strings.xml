@@ -28,5 +28,6 @@
     <string name="fire_sms_message_0">I am at a place with longitude :</string>
     <string name="fire_sms_message_1">and latitude :</string>
     <string name="fire_sms_message_2">and there is a fire.</string>
+    <string name="fire_message_sent">Your report has been sent</string>
     <string name="location_error">Your loction has not been set.</string>
 </resources>

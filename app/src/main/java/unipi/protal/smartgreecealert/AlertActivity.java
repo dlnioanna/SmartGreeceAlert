@@ -52,7 +52,7 @@ import java.io.IOException;
 
 import unipi.protal.smartgreecealert.databinding.ActivityAlertBinding;
 import unipi.protal.smartgreecealert.entities.FireReport;
-import unipi.protal.smartgreecealert.services.FallService;
+import unipi.protal.smartgreecealert.services.SensorService;
 import unipi.protal.smartgreecealert.settings.SettingsActivity;
 import unipi.protal.smartgreecealert.utils.ImageUtils;
 
@@ -71,7 +71,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private LocationManager manager;
     private Location currentLocation;
     private LatLng position;
-    private Intent fallServiceIntent, earthquakeServiceIntent;
+    private Intent sensorServiceIntent, earthquakeServiceIntent;
     private MediaPlayer player;
     private AccelerometerReceiver accelerometerReceiver;
     private FirebaseUser user;
@@ -99,24 +99,24 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         binding.text.setText(user.getDisplayName());
         player = MediaPlayer.create(this, R.raw.clock_sound);
         accelerometerReceiver = new AccelerometerReceiver();
-        fallServiceIntent = new Intent(this, FallService.class);
+        sensorServiceIntent = new Intent(this, SensorService.class);
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(FALL_RECEIVER);
         intentFilter.addAction(Intent.ACTION_POWER_CONNECTED);
         intentFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
         registerReceiver(accelerometerReceiver, intentFilter);
-        startService(fallServiceIntent);
+        startService(sensorServiceIntent);
         binding.abortButton.setOnClickListener(v -> {
             stopCountDown(); // coundown stops
             binding.text.setText("abort");
-            startService(fallServiceIntent); // service is registered again
+            startService(sensorServiceIntent); // service is registered again
         });
         binding.fireButton.setOnClickListener(v -> {
             if(currentLocation!=null){
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 startActivityForResult(intent, TAKE_PICTURE);
             } else {
-                Toast.makeText(this,"den exei fortosei akoma",Toast.LENGTH_SHORT).show();
+                Toast.makeText(this,getString(R.string.location_error),Toast.LENGTH_SHORT).show();
             }
 
         });
@@ -341,7 +341,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(FALL_RECEIVER)) {
-                stopService(fallServiceIntent);
+                stopService(sensorServiceIntent);
                 timer = new CountDownTimer(10000, 1000) {
                     @Override
                     public void onTick(long l) {
@@ -354,7 +354,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                     public void onFinish() {
                         stopCountDown();
                         binding.text.setText("finished");
-                        startService(fallServiceIntent);
+                        startService(sensorServiceIntent);
                     }
                 };
                 timer.start();
@@ -386,7 +386,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             ne.printStackTrace();
         }
         binding.abortButton.setVisibility(View.GONE);
-        stopService(fallServiceIntent);
+        stopService(sensorServiceIntent);
     }
 
 
@@ -408,7 +408,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
     @Override
     protected void onDestroy() {
-        stopService(fallServiceIntent);
+        stopService(sensorServiceIntent);
         unregisterReceiver(accelerometerReceiver);
         super.onDestroy();
     }
@@ -420,7 +420,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
     @Override
     protected void onStart() {
-        startService(fallServiceIntent);
+        startService(sensorServiceIntent);
         super.onStart();
     }
 

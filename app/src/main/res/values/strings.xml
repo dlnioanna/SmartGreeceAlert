@@ -30,6 +30,7 @@
     <string name="fire_sms_message_0">Βρίσκομαι στην τοποθεσία με γεωγραφικό μήκος :</string>
     <string name="fire_sms_message_1">και γεωγραφικό πλάτος :</string>
     <string name="fire_sms_message_2">και παρατηρώ μια πυρκαγιά.</string>
+    <string name="fire_message_sent">Η αναφορά σας έχει σταλεί</string>
     <string name="location_error">Δεν έχει εντοπιστεί η τοποθεσία σας.</string>
 
 </resources>
