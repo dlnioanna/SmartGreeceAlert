@@ -11,8 +11,10 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SEND_SMS" />
+
     <permission android:name="ACCESS_FINE_LOCATION" />
     <permission android:name="INTERNET" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -20,6 +22,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartGreeceAlert">
+        <activity android:name=".ContactsActivity"></activity>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -51,6 +54,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".AlertActivity" />
         </activity>
+
         <service
             android:name=".services.SensorService"
             android:enabled="true"

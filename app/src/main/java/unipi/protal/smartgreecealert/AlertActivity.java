@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -49,12 +50,17 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
+import java.security.Provider;
+import java.util.ArrayList;
+import java.util.List;
 
 import unipi.protal.smartgreecealert.databinding.ActivityAlertBinding;
+import unipi.protal.smartgreecealert.entities.EmergencyContact;
 import unipi.protal.smartgreecealert.entities.FireReport;
 import unipi.protal.smartgreecealert.services.SensorService;
 import unipi.protal.smartgreecealert.settings.SettingsActivity;
 import unipi.protal.smartgreecealert.utils.ImageUtils;
+import unipi.protal.smartgreecealert.utils.SharedPrefsUtils;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.SEND_SMS;
@@ -80,7 +86,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private FirebaseStorage firebaseStorage;
     private StorageReference storageReference;
     private CountDownTimer timer;
-//    private FirebaseAuth.AuthStateListener authStateListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,6 +135,14 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         }
         startGps();
 
+
+        List<EmergencyContact> emergencyContactList = new ArrayList<>();
+        EmergencyContact e = new EmergencyContact("ioanna","dln","6932474176");
+        EmergencyContact e1 = new EmergencyContact("ilias","ppn","6947679760");
+        emergencyContactList.add(e);
+        emergencyContactList.add(e1);
+        SharedPrefsUtils.setEmergencyContacts(this, emergencyContactList);
+        Log.e("get emergency contacts",SharedPrefsUtils.getEmergencyContacts(this));
     }
 
 
@@ -190,7 +203,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             Bundle extra = data.getExtras();
             Bitmap bitmap = (Bitmap) extra.get("data");
             byte[] uploadImage = ImageUtils.encodeBitmap(bitmap);
-            sendTextMessage();
+            sendFireTextMessage();
             saveFireReportPhoto(uploadImage, firetime);
 
         }
@@ -226,9 +239,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                     public void onSuccess(Void aVoid) {
                         // Write was successful!
                         Toast.makeText(getApplicationContext(), getString(R.string.fire_report_result_ok), Toast.LENGTH_SHORT).show();
-                        //todo den allazei xroma kai den apothikeuei to pin
-                        mMap.addMarker(new MarkerOptions().position(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()))
-                                .title(getString(R.string.fire_location_title)).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -245,7 +255,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     public void onLocationChanged(@NonNull Location location) {
         currentLocation = location;
-        Log.e("CURRENT LOCATION ",currentLocation.getLatitude()+" "+currentLocation.getLongitude());
         position = new LatLng(location.getLatitude(), location.getLongitude());
         try {
             mMap.clear();
@@ -274,7 +283,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
-        Log.e("Map ready ","map ready");
         mMap = googleMap;
         mapReady = true;
         position = new LatLng(37.9755024, 23.7351172);
@@ -355,6 +363,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                         stopCountDown();
                         binding.text.setText("finished");
                         startService(sensorServiceIntent);
+                        sendFallTextMessage();
                     }
                 };
                 timer.start();
@@ -440,7 +449,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         currentLocation = savedInstanceState.getParcelable("current_location");
     }
 
-    private void sendTextMessage() {
+    private void sendFireTextMessage() {
         String phoneNumber = "6932474176";
 //        String phoneNumber = "6947679760";
         String message = getString(R.string.fire_sms_message_0)+currentLocation.getLongitude()+getString(R.string.fire_sms_message_1)
@@ -449,7 +458,20 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0, fireIntent, 0);
         SmsManager sms = SmsManager.getDefault();
         sms.sendTextMessage(phoneNumber, null, message, pi, null);
-        Toast.makeText(getApplicationContext(), "Message Sent successfully!",
+        Toast.makeText(getApplicationContext(), getString(R.string.fire_message_sent),
+                Toast.LENGTH_LONG).show();
+
+    }
+
+    private void sendFallTextMessage() {
+        String phoneNumber = "6932474176";
+//        String phoneNumber = "6947679760";
+        String message = getString(R.string.fall_message)+" "+currentLocation.getLatitude()+","+currentLocation.getLongitude();
+        Intent fireIntent = new Intent(getApplicationContext(), AlertActivity.class);
+        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0, fireIntent, 0);
+        SmsManager sms = SmsManager.getDefault();
+        sms.sendTextMessage(phoneNumber, null, message, pi, null);
+        Toast.makeText(getApplicationContext(), getString(R.string.fall_message_sent),
                 Toast.LENGTH_LONG).show();
 
     }

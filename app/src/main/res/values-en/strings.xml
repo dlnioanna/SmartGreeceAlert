@@ -30,4 +30,7 @@
     <string name="fire_sms_message_2">and there is a fire.</string>
     <string name="fire_message_sent">Your report has been sent</string>
     <string name="location_error">Your loction has not been set.</string>
+    <!-- fall string values-->
+    <string name="fall_message_sent">A message has been sent to your contacts.</string>
+    <string name="fall_message">I am in need of help at location :</string>
 </resources>

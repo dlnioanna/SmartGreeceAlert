@@ -30,4 +30,7 @@
     <string name="fire_sms_message_2">et il y a un incendie.</string>
     <string name="fire_message_sent">Votre rapport a été envoyé</string>
     <string name="location_error">Votre emplacement n\'a pas été défini</string>
+    <!-- fall string values-->
+    <string name="fall_message_sent">Un message a été envoyé à vos contacts.</string>
+    <string name="fall_message">J\'ai besoin d\'aide à l\'endroit :</string>
 </resources>

@@ -32,5 +32,7 @@
     <string name="fire_sms_message_2">και παρατηρώ μια πυρκαγιά.</string>
     <string name="fire_message_sent">Η αναφορά σας έχει σταλεί</string>
     <string name="location_error">Δεν έχει εντοπιστεί η τοποθεσία σας.</string>
-
+    <!-- fall string values-->
+    <string name="fall_message_sent">Έχει σταλεί ειδοποίηση στις επαφές σας.</string>
+    <string name="fall_message">Έχω ακινητοποιηθεί στην τοποθεσία :</string>
 </resources>
