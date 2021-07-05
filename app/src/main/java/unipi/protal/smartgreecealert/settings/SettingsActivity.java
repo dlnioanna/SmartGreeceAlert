@@ -53,7 +53,6 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
 
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-
             case android.R.id.home:
                 onBackPressed();
                 return true;

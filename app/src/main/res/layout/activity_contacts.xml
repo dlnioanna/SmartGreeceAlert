@@ -1,9 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ContactsActivity">
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".ContactsActivity">
+
+        <TextView
+            android:id="@+id/add_contacts_title"
+            style="@style/ContactsTitleStyle"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/medium"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/add_contacts_title">
+
+            <LinearLayout style="@style/VerticalLinearLayout">
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/card_contact_first"
+                    style="@style/CardViewStyle"
+                    card_view:cardCornerRadius="@dimen/card_corner_radius"
+                    card_view:contentPadding="@dimen/card_content_padding">
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+                        <TextView
+                            android:id="@+id/contact_first_name"
+                            style="@style/CardViewContactNameTextStyle"
+                            tools:text="onoma epafhs" />
+                        <TextView
+                            android:id="@+id/contact_first_telephone"
+                            style="@style/CardViewContactTelephoneTextStyle"
+                            android:layout_below="@+id/contact_first_name"
+                            tools:text="tilefono" />
+                    </RelativeLayout>
+                </androidx.cardview.widget.CardView>
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/card_contact_second"
+                    style="@style/CardViewStyle"
+                    card_view:cardCornerRadius="@dimen/card_corner_radius"
+                    card_view:contentPadding="@dimen/card_content_padding">
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+                        <TextView
+                            android:id="@+id/contact_second_name"
+                            style="@style/CardViewContactNameTextStyle"
+                            tools:text="onoma epafhs" />
+
+                        <TextView
+                            android:id="@+id/contact_second_telephone"
+                            style="@style/CardViewContactTelephoneTextStyle"
+                            android:layout_below="@+id/contact_second_name"
+                            tools:text="tilefono" />
+                    </RelativeLayout>
+                </androidx.cardview.widget.CardView>
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/card_contact_third"
+                    style="@style/CardViewStyle"
+                    card_view:cardCornerRadius="@dimen/card_corner_radius"
+                    card_view:contentPadding="@dimen/card_content_padding">
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+                        <TextView
+                            android:id="@+id/contact_third_name"
+                            style="@style/CardViewContactNameTextStyle"
+                            tools:text="onoma epafhs" />
+
+                        <TextView
+                            android:id="@+id/contact_third_telephone"
+                            style="@style/CardViewContactTelephoneTextStyle"
+                            android:layout_below="@+id/contact_third_name"
+                            tools:text="tilefono" />
+                    </RelativeLayout>
+                </androidx.cardview.widget.CardView>
+
+
+            </LinearLayout>
+        </ScrollView>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/add_contacts_button"
+            style="@style/FABStyle"
+            app:backgroundTint="@color/primary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:srcCompat="@android:drawable/ic_input_add"
+            app:tint="@android:color/white" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

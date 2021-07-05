@@ -4,6 +4,7 @@
     <string name="title_activity">Alerte de Danger</string>
     <string name="sign_out_text">Déconnexion</string>
     <string name="language_setting">Langue</string>
+    <string name="add_contacts">Contacts</string>
     <string name="abort_button">Annuler</string>
     <string name="gps_title">Le GPS n\'est pas activé</string>
     <string name="gps_message">Pour continuer, veuillez activer le GPS</string>
@@ -33,4 +34,6 @@
     <!-- fall string values-->
     <string name="fall_message_sent">Un message a été envoyé à vos contacts.</string>
     <string name="fall_message">J\'ai besoin d\'aide à l\'endroit :</string>
+    <!-- contacts values-->
+    <string name="add_contacts_title">Ajoutez jusqu\'à 3 contacts d\'urgence.</string>
 </resources>

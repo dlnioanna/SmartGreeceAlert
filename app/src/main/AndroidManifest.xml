@@ -22,7 +22,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartGreeceAlert">
-        <activity android:name=".ContactsActivity"></activity>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -49,6 +48,14 @@
         <activity
             android:name=".settings.SettingsActivity"
             android:label="@string/language_setting"
+            android:parentActivityName=".AlertActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".AlertActivity" />
+        </activity>
+        <activity
+            android:name=".ContactsActivity"
+            android:label="@string/add_contacts"
             android:parentActivityName=".AlertActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

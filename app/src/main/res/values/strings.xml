@@ -3,6 +3,7 @@
     <string name="title_activity">Ενημέρωση Κινδύνου</string>
     <string name="sign_out_text">Αποσύνδεση</string>
     <string name="language_setting">Γλώσσα</string>
+    <string name="add_contacts">Επαφές</string>
     <string name="abort_button">Ακύρωση</string>
     <string name="gps_title">GPS απενεργοποιημένο</string>
     <string name="gps_message">Για να συνεχίσετε ενεργοποιήστε την τοποθεσία συσκευής.</string>
@@ -35,4 +36,6 @@
     <!-- fall string values-->
     <string name="fall_message_sent">Έχει σταλεί ειδοποίηση στις επαφές σας.</string>
     <string name="fall_message">Έχω ακινητοποιηθεί στην τοποθεσία :</string>
+    <!-- contacts values-->
+    <string name="add_contacts_title">Προσθέστε μέχρι 3 επαφές έκτακτης ανάγκης.</string>
 </resources>

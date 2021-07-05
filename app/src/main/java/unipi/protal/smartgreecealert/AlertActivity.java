@@ -117,11 +117,11 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             startService(sensorServiceIntent); // service is registered again
         });
         binding.fireButton.setOnClickListener(v -> {
-            if(currentLocation!=null){
+            if (currentLocation != null) {
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 startActivityForResult(intent, TAKE_PICTURE);
             } else {
-                Toast.makeText(this,getString(R.string.location_error),Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.location_error), Toast.LENGTH_SHORT).show();
             }
 
         });
@@ -132,17 +132,21 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         } else {
             manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
             currentLocation = manager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (SharedPrefsUtils.getEmergencyContacts(this) == null) {
+                Intent contactsIntent = new Intent(this, ContactsActivity.class);
+                startActivity(contactsIntent);
+            }
         }
         startGps();
 
 
-        List<EmergencyContact> emergencyContactList = new ArrayList<>();
-        EmergencyContact e = new EmergencyContact("ioanna","dln","6932474176");
-        EmergencyContact e1 = new EmergencyContact("ilias","ppn","6947679760");
-        emergencyContactList.add(e);
-        emergencyContactList.add(e1);
-        SharedPrefsUtils.setEmergencyContacts(this, emergencyContactList);
-        Log.e("get emergency contacts",SharedPrefsUtils.getEmergencyContacts(this));
+//        List<EmergencyContact> emergencyContactList = new ArrayList<>();
+//        EmergencyContact e = new EmergencyContact("ioanna", "dln", "6932474176");
+//        EmergencyContact e1 = new EmergencyContact("ilias", "ppn", "6947679760");
+//        emergencyContactList.add(e);
+//        emergencyContactList.add(e1);
+//        SharedPrefsUtils.setEmergencyContacts(this, emergencyContactList);
+//        Log.e("get emergency contacts", SharedPrefsUtils.getEmergencyContacts(this));
     }
 
 
@@ -170,6 +174,9 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         } else if (id == R.id.action_statistics) {
             Intent statisticsIntent = new Intent(this, StatisticsActivity.class);
             startActivity(statisticsIntent);
+        } else if (id == R.id.action_add_contacts) {
+            Intent contactsIntent = new Intent(this, ContactsActivity.class);
+            startActivity(contactsIntent);
         }
 
         return super.onOptionsItemSelected(item);
@@ -184,6 +191,11 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             for (int i = 0; i < grantResults.length; i++) {
                 if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
                     signOut();
+                } else {
+                    if (SharedPrefsUtils.getEmergencyContacts(this) == null) {
+                        Intent contactsIntent = new Intent(this, ContactsActivity.class);
+                        startActivity(contactsIntent);
+                    }
                 }
             }
         }
@@ -198,7 +210,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         is called to save data as FireInstance on realtime database
          */
         if (requestCode == TAKE_PICTURE && resultCode == RESULT_OK) {
-            user=firebaseAuth.getCurrentUser();
+            user = firebaseAuth.getCurrentUser();
             Long firetime = System.currentTimeMillis();
             Bundle extra = data.getExtras();
             Bitmap bitmap = (Bitmap) extra.get("data");
@@ -452,8 +464,8 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private void sendFireTextMessage() {
         String phoneNumber = "6932474176";
 //        String phoneNumber = "6947679760";
-        String message = getString(R.string.fire_sms_message_0)+currentLocation.getLongitude()+getString(R.string.fire_sms_message_1)
-                +currentLocation.getLatitude()+getString(R.string.fire_sms_message_2);
+        String message = getString(R.string.fire_sms_message_0) + currentLocation.getLongitude() + getString(R.string.fire_sms_message_1)
+                + currentLocation.getLatitude() + getString(R.string.fire_sms_message_2);
         Intent fireIntent = new Intent(getApplicationContext(), AlertActivity.class);
         PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0, fireIntent, 0);
         SmsManager sms = SmsManager.getDefault();
@@ -466,7 +478,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private void sendFallTextMessage() {
         String phoneNumber = "6932474176";
 //        String phoneNumber = "6947679760";
-        String message = getString(R.string.fall_message)+" "+currentLocation.getLatitude()+","+currentLocation.getLongitude();
+        String message = getString(R.string.fall_message) + " " + currentLocation.getLatitude() + "," + currentLocation.getLongitude();
         Intent fireIntent = new Intent(getApplicationContext(), AlertActivity.class);
         PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0, fireIntent, 0);
         SmsManager sms = SmsManager.getDefault();
