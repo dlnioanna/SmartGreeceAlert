@@ -22,12 +22,10 @@ import unipi.protal.smartgreecealert.databinding.ActivityFirebaseUiBinding;
 
 public class FirebaseUIActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 123;
-    public static final int REQUEST_LOCATION = 1000;
     // Firebase instance variables
     private FirebaseAuth firebaseAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
     private ActivityFirebaseUiBinding binding;
-    private LocationManager manager;
     private FirebaseUser user;
     private Intent intent;
 
@@ -86,7 +84,7 @@ public class FirebaseUIActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 // Successfully signed in
                 user = FirebaseAuth.getInstance().getCurrentUser();
-                intent.putExtra("user", user);
+                intent.putExtra("user",user);
                 startActivity(intent);
 
             } else {

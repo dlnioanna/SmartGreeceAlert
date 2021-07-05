@@ -28,4 +28,5 @@
     <string name="fire_sms_message_0">Je suis à un endroit avec la longitude :</string>
     <string name="fire_sms_message_1">et latitude :</string>
     <string name="fire_sms_message_2">et il y a un incendie.</string>
+    <string name="location_error">Votre emplacement n\'a pas été défini</string>
 </resources>

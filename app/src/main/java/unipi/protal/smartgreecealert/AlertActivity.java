@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.app.PendingIntent;
-import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -24,7 +23,6 @@ import android.os.CountDownTimer;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.telephony.SmsManager;
-import android.text.SpannableString;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -46,7 +44,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.core.utilities.Utilities;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -61,14 +58,12 @@ import unipi.protal.smartgreecealert.utils.ImageUtils;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.SEND_SMS;
-import static android.Manifest.permission.SMS_FINANCIAL_TRANSACTIONS;
 
 public class AlertActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
     private static final String FALL_RECEIVER = "accelerometer_gravity_receiver";
-    private static final String FIRE_REPORT_INSTANCE = "fire_report_instance";
     private static final String FIRE_REPORTS = "fire_reports";
-    private static final String USER_ID = "user_id";
-    public static final int REQUEST_PERMITIONS = 1000;
+    public static final int REQUEST_LOCATION = 1000;
+    public static final int REQUEST_PERMISSIONS = 1100;
     public static final int TAKE_PICTURE = 2000;
     private ActivityAlertBinding binding;
     private boolean mapReady = false;
@@ -85,7 +80,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private FirebaseStorage firebaseStorage;
     private StorageReference storageReference;
     private CountDownTimer timer;
-    private FirebaseAuth.AuthStateListener authStateListener;
+//    private FirebaseAuth.AuthStateListener authStateListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,21 +90,8 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         setContentView(view);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        user = getIntent().getParcelableExtra("user");
         firebaseAuth = FirebaseAuth.getInstance();
-        authStateListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-                    // User is signed in
-                    user = FirebaseAuth.getInstance().getCurrentUser();
-                } else {
-                    // User is signed out
-                    user = null;
-                }
-            }
-        };
+        user = firebaseAuth.getCurrentUser();
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseDatabase = FirebaseDatabase.getInstance();
         firebaseStorage = FirebaseStorage.getInstance();
@@ -130,14 +112,18 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             startService(fallServiceIntent); // service is registered again
         });
         binding.fireButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            startActivityForResult(intent, TAKE_PICTURE);
-            sendTextMessage();
+            if(currentLocation!=null){
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(intent, TAKE_PICTURE);
+            } else {
+                Toast.makeText(this,"den exei fortosei akoma",Toast.LENGTH_SHORT).show();
+            }
+
         });
         manager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if ((ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) ||
                 (ActivityCompat.checkSelfPermission(this, SEND_SMS) != PackageManager.PERMISSION_DENIED)) {
-            ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION, SEND_SMS}, REQUEST_PERMITIONS);
+            ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION, SEND_SMS}, REQUEST_PERMISSIONS);
         } else {
             manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
             currentLocation = manager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -181,7 +167,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_PERMITIONS) {
+        if (requestCode == REQUEST_PERMISSIONS) {
             for (int i = 0; i < grantResults.length; i++) {
                 if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
                     signOut();
@@ -204,6 +190,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             Bundle extra = data.getExtras();
             Bitmap bitmap = (Bitmap) extra.get("data");
             byte[] uploadImage = ImageUtils.encodeBitmap(bitmap);
+            sendTextMessage();
             saveFireReportPhoto(uploadImage, firetime);
 
         }
@@ -258,7 +245,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     public void onLocationChanged(@NonNull Location location) {
         currentLocation = location;
-        Log.i("CURRENT LOCATION ",currentLocation.getLatitude()+" "+currentLocation.getLongitude());
+        Log.e("CURRENT LOCATION ",currentLocation.getLatitude()+" "+currentLocation.getLongitude());
         position = new LatLng(location.getLatitude(), location.getLongitude());
         try {
             mMap.clear();
@@ -266,7 +253,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             ne.printStackTrace();
         }
         mMap.addMarker(new MarkerOptions().position(new LatLng(position.latitude, position.longitude)));
-        CameraPosition target = CameraPosition.builder().target(position).zoom(14).build();
+        CameraPosition target = CameraPosition.builder().target(position).zoom(12).build();
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(target));
     }
 
@@ -287,21 +274,23 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
+        Log.e("Map ready ","map ready");
         mMap = googleMap;
         mapReady = true;
+        position = new LatLng(37.9755024, 23.7351172);
+        CameraPosition target = CameraPosition.builder().target(position).zoom(12).build();
+        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(target));
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(target), 2000, null);
         try {
             // when map loads get current location
             position = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+            mMap.clear();
             mMap.addMarker(new MarkerOptions().position(new LatLng(position.latitude, position.longitude)));
-            // camera focus on current location
-            CameraPosition target = CameraPosition.builder().target(position).zoom(14).build();
             mMap.moveCamera(CameraUpdateFactory.newCameraPosition(target));
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(target), 2000, null);
         } catch (NullPointerException ne) {
             ne.printStackTrace();
         }
-
-
     }
 
     /*
@@ -314,7 +303,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         } else {
             // if permission is not granted ask for it
             if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, REQUEST_PERMITIONS);
+                ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
             } else {
                 // if permission is granted go to MapsActivity
                 manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
@@ -409,33 +398,28 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
     @Override
     protected void onPause() {
-        Log.e("on pause ", user.getDisplayName());
         super.onPause();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.e("on resume ", user.getDisplayName());
     }
 
     @Override
     protected void onDestroy() {
         stopService(fallServiceIntent);
         unregisterReceiver(accelerometerReceiver);
-        Log.e("onDestroy ", user.getDisplayName());
         super.onDestroy();
     }
 
     @Override
     protected void onStop() {
-        Log.e("onStop ", user.getDisplayName());
         super.onStop();
     }
 
     @Override
     protected void onStart() {
-        Log.e("onStart", user.getDisplayName());
         startService(fallServiceIntent);
         super.onStart();
     }
@@ -445,7 +429,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         outState.putParcelable("f_user", user);
         outState.putParcelable("current_location", currentLocation);
-        Log.e("on onSaveInstanceState ", user.getDisplayName());
         super.onSaveInstanceState(outState);
     }
 
@@ -455,24 +438,17 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         super.onRestoreInstanceState(savedInstanceState);
         user = savedInstanceState.getParcelable("f_user");
         currentLocation = savedInstanceState.getParcelable("current_location");
-        Log.e("on onRestoreInstanceState ", user.getDisplayName());
     }
 
     private void sendTextMessage() {
         String phoneNumber = "6932474176";
 //        String phoneNumber = "6947679760";
-        StringBuilder builder = new StringBuilder();
-        builder.append(getString(R.string.fire_sms_message_0))
-//                .append(currentLocation.getLongitude())
-                .append(1.0)
-                .append(getString(R.string.fire_sms_message_1))
-//                .append(currentLocation.getLatitude())
-                .append(1.0)
-                .append(getString(R.string.fire_sms_message_2));
+        String message = getString(R.string.fire_sms_message_0)+currentLocation.getLongitude()+getString(R.string.fire_sms_message_1)
+                +currentLocation.getLatitude()+getString(R.string.fire_sms_message_2);
         Intent fireIntent = new Intent(getApplicationContext(), AlertActivity.class);
         PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0, fireIntent, 0);
         SmsManager sms = SmsManager.getDefault();
-        sms.sendTextMessage(phoneNumber, null, builder.toString(), pi, null);
+        sms.sendTextMessage(phoneNumber, null, message, pi, null);
         Toast.makeText(getApplicationContext(), "Message Sent successfully!",
                 Toast.LENGTH_LONG).show();
 
