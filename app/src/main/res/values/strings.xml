@@ -33,7 +33,7 @@
     <!-- fall string values-->
     <string name="fall_message_sent">Έχει σταλεί ειδοποίηση στις επαφές σας.</string>
     <string name="fall_message">Χρειάζομαι βοήθεια στην τοποθεσία: %f, %f</string>
-    <string name="false_alarm">Άκυρος ο συνεγερμός! Όλα καλά.</string>
+    <string name="false_alarm">Άκυρος ο συναγερμός! Όλα καλά.</string>
     <string name="false_alarm_message">Η ακύρωση έχει σταλεί στις επαφές σας</string>
     <string name="cancellation_button">Ακύρωση Ειδοποίησης</string>
 </resources>
