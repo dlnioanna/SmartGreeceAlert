@@ -31,49 +31,132 @@
                     style="@style/CardViewStyle"
                     card_view:cardCornerRadius="@dimen/card_corner_radius"
                     card_view:contentPadding="@dimen/card_content_padding">
-                    <RelativeLayout
+
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent">
-                        <TextView
-                            android:id="@+id/contact_first_name"
-                            style="@style/CardViewContactNameTextStyle"
-                            tools:text="onoma epafhs" />
-                        <TextView
-                            android:id="@+id/contact_first_telephone"
-                            style="@style/CardViewContactTelephoneTextStyle"
-                            android:layout_below="@+id/contact_first_name"
-                            tools:text="tilefono" />
-                    </RelativeLayout>
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="10"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/contact_first_name"
+                                style="@style/CardViewContactNameTextStyle"
+                                tools:text="onoma epafhs" />
+
+                            <TextView
+                                android:id="@+id/contact_first_telephone"
+                                style="@style/CardViewContactTelephoneTextStyle"
+                                tools:text="tilefono" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/buttons_layout_first"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="3"
+                            android:orientation="horizontal">
+
+                            <ImageButton
+                                android:id="@+id/edit_contact_first"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:src="@android:drawable/ic_menu_edit"
+                                app:backgroundTint="@android:color/transparent"
+                                app:tint="@android:color/holo_green_dark" />
+
+                            <ImageButton
+                                android:id="@+id/delete_contact_first"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:src="@android:drawable/ic_delete"
+                                app:backgroundTint="@android:color/transparent"
+                                app:tint="@android:color/holo_red_dark" />
+                        </LinearLayout>
+                    </LinearLayout>
                 </androidx.cardview.widget.CardView>
+
                 <androidx.cardview.widget.CardView
                     android:id="@+id/card_contact_second"
                     style="@style/CardViewStyle"
                     card_view:cardCornerRadius="@dimen/card_corner_radius"
                     card_view:contentPadding="@dimen/card_content_padding">
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent">
-                        <TextView
-                            android:id="@+id/contact_second_name"
-                            style="@style/CardViewContactNameTextStyle"
-                            tools:text="onoma epafhs" />
 
-                        <TextView
-                            android:id="@+id/contact_second_telephone"
-                            style="@style/CardViewContactTelephoneTextStyle"
-                            android:layout_below="@+id/contact_second_name"
-                            tools:text="tilefono" />
-                    </RelativeLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="10"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/contact_second_name"
+                                style="@style/CardViewContactNameTextStyle"
+                                tools:text="onoma epafhs" />
+
+                            <TextView
+                                android:id="@+id/contact_second_telephone"
+                                style="@style/CardViewContactTelephoneTextStyle"
+                                android:layout_below="@+id/contact_second_name"
+                                tools:text="tilefono" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/buttons_layout_second"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="3"
+                            android:orientation="horizontal">
+
+                            <ImageButton
+                                android:id="@+id/edit_contact_second"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:src="@android:drawable/ic_menu_edit"
+                                app:backgroundTint="@android:color/transparent"
+                                app:tint="@android:color/holo_green_dark" />
+
+                            <ImageButton
+                                android:id="@+id/delete_contact_second"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:src="@android:drawable/ic_delete"
+                                app:backgroundTint="@android:color/transparent"
+                                app:tint="@android:color/holo_red_dark" />
+                        </LinearLayout>
+                    </LinearLayout>
                 </androidx.cardview.widget.CardView>
+
                 <androidx.cardview.widget.CardView
                     android:id="@+id/card_contact_third"
                     style="@style/CardViewStyle"
                     card_view:cardCornerRadius="@dimen/card_corner_radius"
                     card_view:contentPadding="@dimen/card_content_padding">
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent">
-                        <TextView
+
+                    <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="10"
+                        android:orientation="vertical">
+
+                    <TextView
                             android:id="@+id/contact_third_name"
                             style="@style/CardViewContactNameTextStyle"
                             tools:text="onoma epafhs" />
@@ -83,10 +166,34 @@
                             style="@style/CardViewContactTelephoneTextStyle"
                             android:layout_below="@+id/contact_third_name"
                             tools:text="tilefono" />
-                    </RelativeLayout>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/buttons_layout_third"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="3"
+                        android:orientation="horizontal">
+
+                        <ImageButton
+                            android:id="@+id/edit_contact_third"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:src="@android:drawable/ic_menu_edit"
+                            app:backgroundTint="@android:color/transparent"
+                            app:tint="@android:color/holo_green_dark" />
+
+                        <ImageButton
+                            android:id="@+id/delete_contact_third"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:src="@android:drawable/ic_delete"
+                            app:backgroundTint="@android:color/transparent"
+                            app:tint="@android:color/holo_red_dark" />
+                    </LinearLayout>
+                    </LinearLayout>
                 </androidx.cardview.widget.CardView>
-
-
             </LinearLayout>
         </ScrollView>
 
