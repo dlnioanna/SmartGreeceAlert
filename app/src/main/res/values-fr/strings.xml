@@ -42,4 +42,6 @@
     <string name="contact_last_name">Nom de famille</string>
     <string name="contact_telephone">Téléphone</string>
     <string name="contact_no_values_error">Remplissez toutes les valeurs</string>
+    <string name="contact_edit">Éditer</string>
+    <string name="contact_delete">Effacer</string>
 </resources>

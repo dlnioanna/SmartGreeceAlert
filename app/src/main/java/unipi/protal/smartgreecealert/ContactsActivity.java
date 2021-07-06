@@ -2,10 +2,12 @@ package unipi.protal.smartgreecealert;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -95,7 +97,49 @@ public class ContactsActivity extends AppCompatActivity{
         } else {
             binding.addContactsButton.setVisibility(View.GONE);
         }
+        int[] location1 = new int[2];
+        binding.cardContactFirst.getLocationOnScreen(location1);
+        int x1 = location1[0];
+        Toast.makeText(getApplicationContext(), "right "+x1 , Toast.LENGTH_SHORT).show();
+        binding.cardContactFirst.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()){
+            public void onSwipeRight() {
+                int[] location = new int[2];
+                binding.cardContactFirst.getLocationOnScreen(location);
+                int x = location[0];
+                Toast.makeText(getApplicationContext(), "right "+x , Toast.LENGTH_SHORT).show();
+//
+//                if(x!=0){
+//                    ObjectAnimator animation = ObjectAnimator.ofFloat(binding.cardContactFirst, "translationX", 0f);
+//                    animation.setDuration(500);
+//                    animation.start();
+//                }else {
+                    ObjectAnimator animation = ObjectAnimator.ofFloat(binding.cardContactFirst, "translationX", 300f);
+                    animation.setDuration(500);
+                    animation.start();
+//                }
+            }
+            public void onSwipeLeft() {
+                Toast.makeText(getApplicationContext(), "left", Toast.LENGTH_SHORT).show();
+                ObjectAnimator animation = ObjectAnimator.ofFloat(binding.cardContactFirst, "translationX", -300f);
+                animation.setDuration(500);
+                animation.start();
+            }
+        });
+        binding.cardContactSecond.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()){
+            public void onSwipeTop() {
+                Toast.makeText(getApplicationContext(), "top", Toast.LENGTH_SHORT).show();
+            }
+            public void onSwipeRight() {
+                Toast.makeText(getApplicationContext(), "right", Toast.LENGTH_SHORT).show();
+            }
+            public void onSwipeLeft() {
+                Toast.makeText(getApplicationContext(), "left", Toast.LENGTH_SHORT).show();
+            }
+            public void onSwipeBottom() {
+                Toast.makeText(getApplicationContext(), "bottom", Toast.LENGTH_SHORT).show();
+            }
 
+        });
 
     }
 
