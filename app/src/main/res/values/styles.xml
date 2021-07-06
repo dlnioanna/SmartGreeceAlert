@@ -72,5 +72,7 @@
         <item name="android:layout_margin">@dimen/medium</item>
         <item name="android:imeOptions">actionDone</item>
     </style>
-
+    <style name="DeleteDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="colorAccent">@color/red</item>
+    </style>
 </resources>
