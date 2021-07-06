@@ -37,5 +37,11 @@
     <string name="fall_message_sent">Έχει σταλεί ειδοποίηση στις επαφές σας.</string>
     <string name="fall_message">Έχω ακινητοποιηθεί στην τοποθεσία :</string>
     <!-- contacts values-->
-    <string name="add_contacts_title">Προσθέστε μέχρι 3 επαφές έκτακτης ανάγκης.</string>
+    <string name="add_contacts_title">Προσθέστε μέχρι 3 επαφές έκτακτης ανάγκης</string>
+    <string name="full_contacts_title">Επαφές έκτακτης ανάγκης</string>
+    <string name="add_new_contact_title">Νέα επαφή</string>
+    <string name="contact_name">Όνομα</string>
+    <string name="contact_last_name">Επώνυμο</string>
+    <string name="contact_telephone">Τηλέφωνο</string>
+    <string name="contact_no_values_error">Συμπληρώστε όλα τα πεδία</string>
 </resources>

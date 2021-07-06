@@ -59,6 +59,7 @@ import unipi.protal.smartgreecealert.entities.EmergencyContact;
 import unipi.protal.smartgreecealert.entities.FireReport;
 import unipi.protal.smartgreecealert.services.SensorService;
 import unipi.protal.smartgreecealert.settings.SettingsActivity;
+import unipi.protal.smartgreecealert.utils.ContactsUtils;
 import unipi.protal.smartgreecealert.utils.ImageUtils;
 import unipi.protal.smartgreecealert.utils.SharedPrefsUtils;
 
@@ -146,7 +147,9 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 //        emergencyContactList.add(e);
 //        emergencyContactList.add(e1);
 //        SharedPrefsUtils.setEmergencyContacts(this, emergencyContactList);
-//        Log.e("get emergency contacts", SharedPrefsUtils.getEmergencyContacts(this));
+//        ContactsUtils.addContact(e,this);
+//        ContactsUtils.addContact(e1,this);
+//        ContactsUtils.addContact(e1,this);
     }
 
 

@@ -35,5 +35,11 @@
     <string name="fall_message_sent">Un message a été envoyé à vos contacts.</string>
     <string name="fall_message">J\'ai besoin d\'aide à l\'endroit :</string>
     <!-- contacts values-->
-    <string name="add_contacts_title">Ajoutez jusqu\'à 3 contacts d\'urgence.</string>
+    <string name="add_contacts_title">Ajoutez jusqu\'à 3 contacts d\'urgence</string>
+    <string name="full_contacts_title">Contacts d\'urgence</string>
+    <string name="add_new_contact_title">Nouveau contact</string>
+    <string name="contact_name">Nom</string>
+    <string name="contact_last_name">Nom de famille</string>
+    <string name="contact_telephone">Téléphone</string>
+    <string name="contact_no_values_error">Remplissez toutes les valeurs</string>
 </resources>
