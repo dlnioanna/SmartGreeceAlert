@@ -523,7 +523,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         //Send SMS
         SmsManager sms = SmsManager.getDefault();
         //TODO: Enable send SMS
-        //sms.sendTextMessage(phoneNumber, null, message, null, null);
+        sms.sendTextMessage(phoneNumber, null, message, null, null);
         final String msg = toastMessage;
         //Run Toast in UIThread when sendTextMessage is called from a worker thread.
         runOnUiThread(()->{
