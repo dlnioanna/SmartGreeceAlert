@@ -31,4 +31,6 @@
     <string name="fall_message_sent">A message has been sent to your contacts.</string>
     <string name="fall_message">I am in need of help at location: %f, %f</string>
     <string name="false_alarm">False alarm! I am OK.</string>
+    <string name="false_alarm_message">Cancellation has been sent to you contacts</string>
+    <string name="cancellation_button">Cancel The Alert</string>
 </resources>

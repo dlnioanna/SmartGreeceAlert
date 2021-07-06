@@ -5,7 +5,6 @@ import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -21,10 +20,6 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.telephony.SmsManager;
@@ -91,7 +86,8 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private FirebaseStorage firebaseStorage;
     private StorageReference storageReference;
     private CountDownTimer timer;
-    private Thread sender_thread;
+    private boolean isAlertMessageSent;
+    private Report lastReport;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,7 +111,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         registerReceiver(accelerometerReceiver, intentFilter);
         startService(sensorServiceIntent);
         binding.abortButton.setOnClickListener(v -> {
-            stopCountDown(); // countdown stops
+            cancelAlarm(); // countdown stops
             binding.text.setText("abort");
         });
         binding.fireButton.setOnClickListener(v -> {
@@ -362,6 +358,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(ACCELEROMETER_RECEIVER)) {
+                //TODO: CountDown to 30000 ms
                 timer = new CountDownTimer(10000, 1000) {
                     @Override
                     public void onTick(long l) {
@@ -372,10 +369,14 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
                     @Override
                     public void onFinish() {
-                        stopCountDown();
+                        cancelAlarm();
                         binding.text.setText("finished");
+                        //Get epochTime of the incident
+                        long incidentTime = Instant.now().toEpochMilli();
+                        //Create a report object
+                        lastReport = new Report(ReportType.FALL_REPORT, incidentTime);
                         //Send SMS and Save report to Firebase Async
-                        sendFallReportAsync(Instant.now().toEpochMilli());
+                        sendFallReportAsync(incidentTime);
                     }
                 };
                 timer.start();
@@ -424,20 +425,30 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                 .signOut(this).addOnCompleteListener(task -> finish());
     }
 
-    // Called when user cancels the countdown and the message is not sent
-    private void stopCountDown() {
-        player.stop();
-        try {
-            player.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
+    /* Called when user cancels the countdown and the message is not sent
+    or if message is already sent, sends a cancellation message */
+    private void cancelAlarm() {
+        if(!isAlertMessageSent){
+            player.stop();
+            try {
+                player.prepare();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                timer.cancel();
+            } catch (NullPointerException ne) {
+                ne.printStackTrace();
+            }
+            binding.abortButton.setVisibility(View.GONE);
         }
-        try {
-            timer.cancel();
-        } catch (NullPointerException ne) {
-            ne.printStackTrace();
+        else {
+            //TODO: Firebase canceled flag to true
+            sendTextMessage(ReportType.FALSE_ALARM);
+            isAlertMessageSent = false;
+            binding.abortButton.setVisibility(View.GONE);
+            binding.text.setText("abort");
         }
-        binding.abortButton.setVisibility(View.GONE);
     }
 
     @Override
@@ -502,16 +513,25 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                 toastMessage = getString(R.string.fall_message_sent);
                 break;
             case EARTHQUAKE_REPORT:
+                //TODO: Earthquake Implementation
+                break;
+            case FALSE_ALARM:
+                message = getString(R.string.false_alarm);
+                toastMessage = getString(R.string.false_alarm_message);
                 break;
         }
         //Send SMS
         SmsManager sms = SmsManager.getDefault();
-        sms.sendTextMessage(phoneNumber, null, message, null, null);
+        //TODO: Enable send SMS
+        //sms.sendTextMessage(phoneNumber, null, message, null, null);
         final String msg = toastMessage;
         //Run Toast in UIThread when sendTextMessage is called from a worker thread.
         runOnUiThread(()->{
             Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+            //Enable false alarm button
+            isAlertMessageSent = true;
+            binding.abortButton.setVisibility(View.VISIBLE);
+            binding.abortButton.setText(getString(R.string.cancellation_button));
         });
-
     }
 }
