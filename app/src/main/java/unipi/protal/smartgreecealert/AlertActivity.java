@@ -43,7 +43,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.annotations.NotNull;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -66,8 +65,7 @@ import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.SEND_SMS;
 
 public class AlertActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
-    private static final String FALL_RECEIVER = "accelerometer_gravity_receiver";
-    private static final String FIRE_REPORTS = "fire_reports";
+    private static final String ACCELEROMETER_RECEIVER = "accelerometer_gravity_receiver";
     private static final String REPORTS = "reports";
     public static final int REQUEST_LOCATION = 1000;
     public static final int REQUEST_PERMISSIONS = 1100;
@@ -87,6 +85,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private FirebaseStorage firebaseStorage;
     private StorageReference storageReference;
     private CountDownTimer timer;
+    private volatile static boolean isAlertTriggered;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,15 +105,12 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         accelerometerReceiver = new AccelerometerReceiver();
         sensorServiceIntent = new Intent(this, SensorService.class);
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(FALL_RECEIVER);
-        intentFilter.addAction(Intent.ACTION_POWER_CONNECTED);
-        intentFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+        intentFilter.addAction(ACCELEROMETER_RECEIVER);
         registerReceiver(accelerometerReceiver, intentFilter);
-        // startService(sensorServiceIntent);
+        startService(sensorServiceIntent);
         binding.abortButton.setOnClickListener(v -> {
             stopCountDown(); // countdown stops
             binding.text.setText("abort");
-            startService(sensorServiceIntent); // service is registered again
         });
         binding.fireButton.setOnClickListener(v -> {
             if(currentLocation!=null){
@@ -199,12 +195,14 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
          */
         if (requestCode == TAKE_PICTURE && resultCode == RESULT_OK) {
             user = firebaseAuth.getCurrentUser();
-            Long firetime = System.currentTimeMillis();
+            Long fireTimestamp = System.currentTimeMillis();
             Bundle extra = data.getExtras();
             Bitmap bitmap = (Bitmap) extra.get("data");
             byte[] uploadImage = ImageUtils.encodeBitmap(bitmap);
-            sendFireTextMessage();
-            saveFireReportPhoto(uploadImage, firetime);
+            //Save Report to Firebase
+            saveFireReportPhoto(uploadImage, fireTimestamp);
+            //Send SMS
+            sendTextMessage(ReportType.FIRE_REPORT);
         }
     }
 
@@ -364,8 +362,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private class AccelerometerReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(FALL_RECEIVER)) {
-                stopService(sensorServiceIntent);
+            if (intent.getAction().equals(ACCELEROMETER_RECEIVER)) {
                 timer = new CountDownTimer(10000, 1000) {
                     @Override
                     public void onTick(long l) {
@@ -379,16 +376,13 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                         stopCountDown();
                         binding.text.setText("finished");
                         //TODO: gps nullException on currentLocation lat and log
+                        //Save report to Firebase
                         saveReport(ReportType.FALL_REPORT, Instant.now().toEpochMilli());
-                        sendFallTextMessage();
-                        startService(sensorServiceIntent);
+                        //Send SMS
+                        sendTextMessage(ReportType.FALL_REPORT);
                     }
                 };
                 timer.start();
-            } else if (intent.getAction().equals(Intent.ACTION_POWER_CONNECTED)) {
-                binding.text.setText("charging");
-            } else if (intent.getAction().equals(Intent.ACTION_POWER_DISCONNECTED)) {
-                binding.text.setText("unplugged");
             }
         }
     }
@@ -413,14 +407,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             ne.printStackTrace();
         }
         binding.abortButton.setVisibility(View.GONE);
-        stopService(sensorServiceIntent);
-    }
-
-
-    private void restartActivity() {
-        Intent intent = getIntent();
-        finish();
-        startActivity(intent);
+//        stopService(sensorServiceIntent);
     }
 
     @Override
@@ -447,7 +434,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
     @Override
     protected void onStart() {
-        startService(sensorServiceIntent);
+//        startService(sensorServiceIntent);
         super.onStart();
     }
 
@@ -467,31 +454,56 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         currentLocation = savedInstanceState.getParcelable("current_location");
     }
 
-    private void sendFireTextMessage() {
+//    private void sendFireTextMessage() {
+////        String phoneNumber = "6932474176";
+//        String phoneNumber = "6947679760";
+//        String message = getString(R.string.fire_sms_message_0)+currentLocation.getLongitude()+getString(R.string.fire_sms_message_1)
+//                +currentLocation.getLatitude()+getString(R.string.fire_sms_message_2);
+//        Intent fireIntent = new Intent(getApplicationContext(), AlertActivity.class);
+//        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0, fireIntent, 0);
+//        SmsManager sms = SmsManager.getDefault();
+//        sms.sendTextMessage(phoneNumber, null, message, pi, null);
+//        Toast.makeText(getApplicationContext(), getString(R.string.fire_message_sent),
+//                Toast.LENGTH_LONG).show();
+//    }
+//
+//    private void sendFallTextMessage() {
+////        String phoneNumber = "6932474176";
+//        String phoneNumber = "6947679760";
+//        String message = getString(R.string.fall_message)+" "+currentLocation.getLatitude()+","+currentLocation.getLongitude();
+//        Intent fireIntent = new Intent(getApplicationContext(), AlertActivity.class);
+//        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0, fireIntent, 0);
+//        SmsManager sms = SmsManager.getDefault();
+//        sms.sendTextMessage(phoneNumber, null, message, pi, null);
+//        Toast.makeText(getApplicationContext(), getString(R.string.fall_message_sent),
+//                Toast.LENGTH_LONG).show();
+//    }
+
+    private void sendTextMessage(ReportType reportType){
 //        String phoneNumber = "6932474176";
         String phoneNumber = "6947679760";
-        String message = getString(R.string.fire_sms_message_0)+currentLocation.getLongitude()+getString(R.string.fire_sms_message_1)
-                +currentLocation.getLatitude()+getString(R.string.fire_sms_message_2);
-        Intent fireIntent = new Intent(getApplicationContext(), AlertActivity.class);
-        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0, fireIntent, 0);
+        String message = "SOS";
+        String toastMessage = "Message has been sent successfully";
+        switch (reportType){
+            case FIRE_REPORT:
+//                message = getString(R.string.fire_sms_message_0)+currentLocation.getLongitude()
+//                        +getString(R.string.fire_sms_message_1)
+//                        +currentLocation.getLatitude()+getString(R.string.fire_sms_message_2);
+                message = "Fire Report";
+                toastMessage = getString(R.string.fire_message_sent);
+                break;
+            case FALL_REPORT:
+//                message = getString(R.string.fall_message)+" "+currentLocation.getLatitude()
+//                        +","+currentLocation.getLongitude();
+                message = "Fall Report";
+                toastMessage = getString(R.string.fall_message_sent);
+                break;
+            case EARTHQUAKE_REPORT:
+                break;
+        }
+        //Send SMS
         SmsManager sms = SmsManager.getDefault();
-        sms.sendTextMessage(phoneNumber, null, message, pi, null);
-        Toast.makeText(getApplicationContext(), getString(R.string.fire_message_sent),
-                Toast.LENGTH_LONG).show();
-
+        sms.sendTextMessage(phoneNumber, null, message, null, null);
+        Toast.makeText(this, toastMessage, Toast.LENGTH_LONG).show();
     }
-
-    private void sendFallTextMessage() {
-//        String phoneNumber = "6932474176";
-        String phoneNumber = "6947679760";
-        String message = getString(R.string.fall_message)+" "+currentLocation.getLatitude()+","+currentLocation.getLongitude();
-        Intent fireIntent = new Intent(getApplicationContext(), AlertActivity.class);
-        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0, fireIntent, 0);
-        SmsManager sms = SmsManager.getDefault();
-        sms.sendTextMessage(phoneNumber, null, message, pi, null);
-        Toast.makeText(getApplicationContext(), getString(R.string.fall_message_sent),
-                Toast.LENGTH_LONG).show();
-
-    }
-
 }

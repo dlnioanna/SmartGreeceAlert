@@ -1,7 +1,5 @@
 package unipi.protal.smartgreecealert.services;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -14,17 +12,14 @@ import android.hardware.SensorManager;
 import android.os.IBinder;
 
 import androidx.annotation.Nullable;
-import androidx.core.app.NotificationCompat;
 
 import java.time.Instant;
-
-import unipi.protal.smartgreecealert.R;
 
 
 public class SensorService extends Service implements SensorEventListener {
     SensorManager sensorManager;
     Sensor accelerometerSensor;
-    private static final String FALL_RECEIVER = "accelerometer_gravity_receiver";
+    private static final String ACCELEROMETER_RECEIVER = "accelerometer_gravity_receiver";
     FallingState state;
     long freeFallTime;
     static boolean isPowerConnected;
@@ -127,7 +122,7 @@ public class SensorService extends Service implements SensorEventListener {
             case IMMOBILITY_DETECTED:
                 /* Trigger Countdown Alarm */
                 Intent intent = new Intent();
-                intent.setAction(FALL_RECEIVER);
+                intent.setAction(ACCELEROMETER_RECEIVER);
                 sendBroadcast(intent);
                 System.out.println("Alarm Triggered!!!");
                 state = FallingState.INIT_STATE;
