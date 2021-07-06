@@ -51,12 +51,14 @@ import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
 import java.security.Provider;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 import unipi.protal.smartgreecealert.databinding.ActivityAlertBinding;
 import unipi.protal.smartgreecealert.entities.EmergencyContact;
-import unipi.protal.smartgreecealert.entities.FireReport;
+import unipi.protal.smartgreecealert.entities.Report;
+import unipi.protal.smartgreecealert.entities.ReportType;
 import unipi.protal.smartgreecealert.services.SensorService;
 import unipi.protal.smartgreecealert.settings.SettingsActivity;
 import unipi.protal.smartgreecealert.utils.ContactsUtils;
@@ -69,6 +71,7 @@ import static android.Manifest.permission.SEND_SMS;
 public class AlertActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
     private static final String FALL_RECEIVER = "accelerometer_gravity_receiver";
     private static final String FIRE_REPORTS = "fire_reports";
+    private static final String REPORTS = "reports";
     public static final int REQUEST_LOCATION = 1000;
     public static final int REQUEST_PERMISSIONS = 1100;
     public static final int TAKE_PICTURE = 2000;
@@ -98,7 +101,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         mapFragment.getMapAsync(this);
         firebaseAuth = FirebaseAuth.getInstance();
         user = firebaseAuth.getCurrentUser();
-        firebaseAuth = FirebaseAuth.getInstance();
         firebaseDatabase = FirebaseDatabase.getInstance();
         firebaseStorage = FirebaseStorage.getInstance();
         storageReference = firebaseStorage.getReference().child(FIRE_REPORTS);
@@ -124,7 +126,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             } else {
                 Toast.makeText(this, getString(R.string.location_error), Toast.LENGTH_SHORT).show();
             }
-
         });
         manager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if ((ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) ||
@@ -140,16 +141,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         }
         startGps();
 
-
-//        List<EmergencyContact> emergencyContactList = new ArrayList<>();
-//        EmergencyContact e = new EmergencyContact("ioanna", "dln", "6932474176");
-//        EmergencyContact e1 = new EmergencyContact("ilias", "ppn", "6947679760");
-//        emergencyContactList.add(e);
-//        emergencyContactList.add(e1);
-//        SharedPrefsUtils.setEmergencyContacts(this, emergencyContactList);
-//        ContactsUtils.addContact(e,this);
-//        ContactsUtils.addContact(e1,this);
-//        ContactsUtils.addContact(e1,this);
     }
 
 
@@ -169,17 +160,17 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button
         int id = item.getItemId();
-        if (id == R.id.action_sign_out) {
-            signOut();
+        if (id == R.id.action_add_contacts) {
+            Intent contactsIntent = new Intent(this, ContactsActivity.class);
+            startActivity(contactsIntent);
         } else if (id == R.id.action_change_language) {
             Intent settingsIntent = new Intent(this, SettingsActivity.class);
             startActivity(settingsIntent);
         } else if (id == R.id.action_statistics) {
             Intent statisticsIntent = new Intent(this, StatisticsActivity.class);
             startActivity(statisticsIntent);
-        } else if (id == R.id.action_add_contacts) {
-            Intent contactsIntent = new Intent(this, ContactsActivity.class);
-            startActivity(contactsIntent);
+        } else if (id == R.id.action_sign_out) {
+            signOut();
         }
 
         return super.onOptionsItemSelected(item);
@@ -220,7 +211,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             byte[] uploadImage = ImageUtils.encodeBitmap(bitmap);
             sendFireTextMessage();
             saveFireReportPhoto(uploadImage, firetime);
-
         }
     }
 
@@ -239,21 +229,39 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 Uri uri = taskSnapshot.getUploadSessionUri();
-                saveFireReport(uri, firetime);
+                saveReport(ReportType.FIRE_REPORT, firetime, uri);
             }
         });
     }
 
-    // stores fire instance on realtime database and informs the user with a Toas message if the upload is succesful or not
-    private void saveFireReport(Uri uri, Long time) {
-        DatabaseReference dbref = firebaseDatabase.getReference(FIRE_REPORTS);
-        FireReport fireReport = new FireReport(currentLocation.getLatitude(), currentLocation.getLongitude(), time, uri.toString(), false);
-        dbref.child(user.getUid()).child(time.toString()).setValue(fireReport)
+    // stores reports on realtime database and informs the user with a Toast message if the upload is successful or not
+    private void saveReport(ReportType reportType, Long time, Uri... uri) {
+        DatabaseReference dbref = firebaseDatabase.getReference().child(REPORTS);
+        Report report;
+        switch (reportType){
+            case FIRE_REPORT:
+                report = new Report(ReportType.FIRE_REPORT, currentLocation.getLatitude(),
+                        currentLocation.getLongitude(), time, uri.toString(), false);
+                break;
+            case FALL_REPORT:
+                report = new Report(ReportType.FALL_REPORT, currentLocation.getLatitude(),
+                        currentLocation.getLongitude(), time, false);
+                break;
+            case EARTHQUAKE_REPORT:
+                report = new Report(ReportType.EARTHQUAKE_REPORT, currentLocation.getLatitude(),
+                        currentLocation.getLongitude(), time, false);
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + reportType);
+        }
+        dbref.child(user.getUid()).child(time.toString()).setValue(report)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
                         // Write was successful!
-                        Toast.makeText(getApplicationContext(), getString(R.string.fire_report_result_ok), Toast.LENGTH_SHORT).show();
+                        if(reportType.equals(ReportType.FIRE_REPORT)){
+                            Toast.makeText(getApplicationContext(), getString(R.string.fire_report_result_ok), Toast.LENGTH_SHORT).show();
+                        }
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -263,7 +271,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                         Toast.makeText(getApplicationContext(), getString(R.string.fire_report_result_error), Toast.LENGTH_SHORT).show();
                     }
                 });
-
     }
 
     // On every location change ui is updated
@@ -377,8 +384,10 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                     public void onFinish() {
                         stopCountDown();
                         binding.text.setText("finished");
-                        startService(sensorServiceIntent);
+                        //TODO: gps nullException on currentLocation lat and log
+                        saveReport(ReportType.FALL_REPORT, Instant.now().toEpochMilli());
                         sendFallTextMessage();
+                        startService(sensorServiceIntent);
                     }
                 };
                 timer.start();
