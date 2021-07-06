@@ -4,19 +4,36 @@ import android.graphics.Bitmap;
 
 import java.io.Serializable;
 
-public class FireReport implements Serializable {
-    private Double latitude ;
-    private Double longitude;
-    private Long date;
-    private String photo;
-    private Boolean canceled;
+public class Report implements Serializable {
 
-    public FireReport(Double latitude, Double longitude, Long date, String photo, Boolean canceled) {
+
+    private final ReportType type;
+    private double latitude ;
+    private double longitude;
+    private long date;
+    private String photo;
+    private boolean canceled;
+
+    public Report(ReportType type, Double latitude, Double longitude, Long date, Boolean canceled) {
+        this.type = type;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.date = date;
+        this.canceled = canceled;
+    }
+
+    //Constructor Overload
+    public Report(ReportType type, Double latitude, Double longitude, Long date, String photo, Boolean canceled) {
+        this.type = type;
         this.latitude = latitude;
         this.longitude = longitude;
         this.date = date;
         this.photo = photo;
         this.canceled = canceled;
+    }
+
+    public ReportType getType() {
+        return type;
     }
 
     public Double getLatitude() {
@@ -59,3 +76,4 @@ public class FireReport implements Serializable {
         this.canceled = canceled;
     }
 }
+
