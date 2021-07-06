@@ -5,7 +5,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -454,31 +453,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         currentLocation = savedInstanceState.getParcelable("current_location");
     }
 
-//    private void sendFireTextMessage() {
-////        String phoneNumber = "6932474176";
-//        String phoneNumber = "6947679760";
-//        String message = getString(R.string.fire_sms_message_0)+currentLocation.getLongitude()+getString(R.string.fire_sms_message_1)
-//                +currentLocation.getLatitude()+getString(R.string.fire_sms_message_2);
-//        Intent fireIntent = new Intent(getApplicationContext(), AlertActivity.class);
-//        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0, fireIntent, 0);
-//        SmsManager sms = SmsManager.getDefault();
-//        sms.sendTextMessage(phoneNumber, null, message, pi, null);
-//        Toast.makeText(getApplicationContext(), getString(R.string.fire_message_sent),
-//                Toast.LENGTH_LONG).show();
-//    }
-//
-//    private void sendFallTextMessage() {
-////        String phoneNumber = "6932474176";
-//        String phoneNumber = "6947679760";
-//        String message = getString(R.string.fall_message)+" "+currentLocation.getLatitude()+","+currentLocation.getLongitude();
-//        Intent fireIntent = new Intent(getApplicationContext(), AlertActivity.class);
-//        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0, fireIntent, 0);
-//        SmsManager sms = SmsManager.getDefault();
-//        sms.sendTextMessage(phoneNumber, null, message, pi, null);
-//        Toast.makeText(getApplicationContext(), getString(R.string.fall_message_sent),
-//                Toast.LENGTH_LONG).show();
-//    }
-
     private void sendTextMessage(ReportType reportType){
 //        String phoneNumber = "6932474176";
         String phoneNumber = "6947679760";
@@ -486,16 +460,13 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         String toastMessage = "Message has been sent successfully";
         switch (reportType){
             case FIRE_REPORT:
-//                message = getString(R.string.fire_sms_message_0)+currentLocation.getLongitude()
-//                        +getString(R.string.fire_sms_message_1)
-//                        +currentLocation.getLatitude()+getString(R.string.fire_sms_message_2);
-                message = "Fire Report";
+                message = String.format(getString(R.string.fire_sms_message).toString()
+                        , currentLocation.getLatitude(), currentLocation.getLongitude());
                 toastMessage = getString(R.string.fire_message_sent);
                 break;
             case FALL_REPORT:
-//                message = getString(R.string.fall_message)+" "+currentLocation.getLatitude()
-//                        +","+currentLocation.getLongitude();
-                message = "Fall Report";
+                message = String.format(getString(R.string.fall_message).toString(),
+                        currentLocation.getLatitude(), currentLocation.getLongitude());
                 toastMessage = getString(R.string.fall_message_sent);
                 break;
             case EARTHQUAKE_REPORT:
