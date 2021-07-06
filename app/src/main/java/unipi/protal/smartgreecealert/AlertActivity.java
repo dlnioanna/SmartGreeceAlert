@@ -1,9 +1,11 @@
 package unipi.protal.smartgreecealert;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -19,6 +21,10 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.telephony.SmsManager;
@@ -64,6 +70,7 @@ import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.SEND_SMS;
 
 public class AlertActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
+    private static final String TAG = "AlertActivity";
     private static final String ACCELEROMETER_RECEIVER = "accelerometer_gravity_receiver";
     private static final String REPORTS = "reports";
     public static final int REQUEST_LOCATION = 1000;
@@ -75,7 +82,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private LocationManager manager;
     private Location currentLocation;
     private LatLng position;
-    private Intent sensorServiceIntent, earthquakeServiceIntent;
+    private Intent sensorServiceIntent;
     private MediaPlayer player;
     private AccelerometerReceiver accelerometerReceiver;
     private FirebaseUser user;
@@ -84,7 +91,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private FirebaseStorage firebaseStorage;
     private StorageReference storageReference;
     private CountDownTimer timer;
-    private volatile static boolean isAlertTriggered;
+    private Thread sender_thread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,7 +125,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             } else {
                 Toast.makeText(this,getString(R.string.location_error),Toast.LENGTH_SHORT).show();
             }
-
         });
         manager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if ((ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) ||
@@ -130,7 +136,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         }
         startGps();
 
-
         List<EmergencyContact> emergencyContactList = new ArrayList<>();
         EmergencyContact e = new EmergencyContact("ioanna","dln","6932474176");
         EmergencyContact e1 = new EmergencyContact("ilias","ppn","6947679760");
@@ -139,7 +144,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         SharedPrefsUtils.setEmergencyContacts(this, emergencyContactList);
         Log.e("get emergency contacts",SharedPrefsUtils.getEmergencyContacts(this));
     }
-
 
     // create menu on the top right corner
     @Override
@@ -166,10 +170,8 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             Intent statisticsIntent = new Intent(this, StatisticsActivity.class);
             startActivity(statisticsIntent);
         }
-
         return super.onOptionsItemSelected(item);
     }
-
 
     // if user has not granted permission for location and sms he is signed out
     @Override
@@ -281,12 +283,10 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-
     }
 
     @Override
     public void onProviderEnabled(@NonNull String provider) {
-
     }
 
     @Override
@@ -374,16 +374,48 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                     public void onFinish() {
                         stopCountDown();
                         binding.text.setText("finished");
-                        //TODO: gps nullException on currentLocation lat and log
-                        //Save report to Firebase
-                        saveReport(ReportType.FALL_REPORT, Instant.now().toEpochMilli());
-                        //Send SMS
-                        sendTextMessage(ReportType.FALL_REPORT);
+                        //Send SMS and Save report to Firebase Async
+                        sendFallReportAsync(Instant.now().toEpochMilli());
                     }
                 };
                 timer.start();
             }
         }
+    }
+
+    /* Send async sms - save fall report to firebase,
+    if GPS signal is present, the system sends the message and saves report to firebase,
+    if GPS signal is not present, the system checks the signal status every 15 seconds */
+    @WorkerThread
+    private void sendFallReportAsync(long timeOfIncident){
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if(currentLocation != null){
+                    //Save report to Firebase
+                    saveReport(ReportType.FALL_REPORT, timeOfIncident);
+                    //Send SMS
+                    sendTextMessage(ReportType.FALL_REPORT);
+                }
+                while(currentLocation == null){
+                    Log.println(Log.DEBUG, TAG, "Waiting for GPS signal....");
+                    try {
+                        Thread.sleep(15000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    if(currentLocation != null){
+                        //Call sendReportMessageHandler back in UIThread
+                        //Save report to Firebase
+                        saveReport(ReportType.FALL_REPORT, timeOfIncident);
+                        //Send SMS
+                        sendTextMessage(ReportType.FALL_REPORT);
+                        break;
+                    }
+                }
+            }
+        });
+        thread.start();
     }
 
     // method to sign out using AuthUI
@@ -406,7 +438,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             ne.printStackTrace();
         }
         binding.abortButton.setVisibility(View.GONE);
-//        stopService(sensorServiceIntent);
     }
 
     @Override
@@ -433,7 +464,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
     @Override
     protected void onStart() {
-//        startService(sensorServiceIntent);
         super.onStart();
     }
 
@@ -453,15 +483,17 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         currentLocation = savedInstanceState.getParcelable("current_location");
     }
 
+    // Sends SMS to contacts provided by the user in shared preferences
     private void sendTextMessage(ReportType reportType){
+        //TODO: Connect contacts with shared preferences
 //        String phoneNumber = "6932474176";
         String phoneNumber = "6947679760";
         String message = "SOS";
         String toastMessage = "Message has been sent successfully";
         switch (reportType){
             case FIRE_REPORT:
-                message = String.format(getString(R.string.fire_sms_message).toString()
-                        , currentLocation.getLatitude(), currentLocation.getLongitude());
+                message = String.format(getString(R.string.fire_sms_message).toString(),
+                        currentLocation.getLatitude(), currentLocation.getLongitude());
                 toastMessage = getString(R.string.fire_message_sent);
                 break;
             case FALL_REPORT:
@@ -475,6 +507,11 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         //Send SMS
         SmsManager sms = SmsManager.getDefault();
         sms.sendTextMessage(phoneNumber, null, message, null, null);
-        Toast.makeText(this, toastMessage, Toast.LENGTH_LONG).show();
+        final String msg = toastMessage;
+        //Run Toast in UIThread when sendTextMessage is called from a worker thread.
+        runOnUiThread(()->{
+            Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+        });
+
     }
 }
