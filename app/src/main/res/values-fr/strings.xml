@@ -22,7 +22,6 @@
     <!-- fire string values-->
     <string name="fire_location_title">Point de feu</string>
     <string name="fire_button">Alerte incendie</string>
-    <string name="locale_french">fr</string>
     <string name="fire_report_result_ok">Votre photo a été enregistrée.</string>
     <string name="fire_report_result_error">Une erreur s\'est produite lors de l\'enregistrement de la photo.</string>
     <string name="fire_sms_message">Je suis à l\'emplacement %f, %f et j\'ai repéré un incendie.</string>
@@ -44,4 +43,5 @@
     <string name="contact_no_values_error">Remplissez toutes les valeurs</string>
     <string name="contact_edit">Éditer</string>
     <string name="contact_delete">Effacer</string>
+    <string name="add_contacts">Contacts</string>
 </resources>

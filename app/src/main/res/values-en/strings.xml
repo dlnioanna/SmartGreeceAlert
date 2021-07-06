@@ -19,7 +19,6 @@
     <string name="preferences_english">English</string>
 <!--    <string name="preferences_french_key">french</string>-->
     <string name="preferences_french">French</string>
-    <string name="locale_french">fr</string>
     <!-- fire string values-->
     <string name="fire_location_title">Fire spot</string>
     <string name="fire_button">Fire alert</string>
@@ -44,4 +43,5 @@
     <string name="contact_no_values_error">Fill in all values</string>
     <string name="contact_edit">Edit</string>
     <string name="contact_delete">Delete</string>
+    <string name="add_contacts">Contacts</string>
 </resources>
