@@ -4,7 +4,6 @@
     <string name="title_activity">Alerte de Danger</string>
     <string name="sign_out_text">Déconnexion</string>
     <string name="language_setting">Langue</string>
-    <string name="add_contacts">Contacts</string>
     <string name="abort_button">Annuler</string>
     <string name="gps_title">Le GPS n\'est pas activé</string>
     <string name="gps_message">Pour continuer, veuillez activer le GPS</string>
@@ -26,14 +25,15 @@
     <string name="locale_french">fr</string>
     <string name="fire_report_result_ok">Votre photo a été enregistrée.</string>
     <string name="fire_report_result_error">Une erreur s\'est produite lors de l\'enregistrement de la photo.</string>
-    <string name="fire_sms_message_0">Je suis à un endroit avec la longitude :</string>
-    <string name="fire_sms_message_1">et latitude :</string>
-    <string name="fire_sms_message_2">et il y a un incendie.</string>
+    <string name="fire_sms_message">Je suis à l\'emplacement %f, %f et j\'ai repéré un incendie.</string>
     <string name="fire_message_sent">Votre rapport a été envoyé</string>
     <string name="location_error">Votre emplacement n\'a pas été défini</string>
     <!-- fall string values-->
     <string name="fall_message_sent">Un message a été envoyé à vos contacts.</string>
-    <string name="fall_message">J\'ai besoin d\'aide à l\'endroit :</string>
+    <string name="fall_message">J\'ai besoin d\'aide à l\'endroit: %f, %f</string>
+    <string name="false_alarm">Fausse alarme! Je vais bien.</string>
+    <string name="false_alarm_message">L\'annulation a été envoyée à vos contacts</string>
+    <string name="cancellation_button">Annuler l\'alerte</string>
     <!-- contacts values-->
     <string name="add_contacts_title">Ajoutez jusqu\'à 3 contacts d\'urgence</string>
     <string name="full_contacts_title">Contacts d\'urgence</string>

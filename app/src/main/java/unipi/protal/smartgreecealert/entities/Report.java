@@ -14,6 +14,11 @@ public class Report implements Serializable {
     private String photo;
     private boolean canceled;
 
+    public Report(ReportType type, Long date){
+        this.type = type;
+        this.date = date;
+    }
+
     public Report(ReportType type, Double latitude, Double longitude, Long date, Boolean canceled) {
         this.type = type;
         this.latitude = latitude;

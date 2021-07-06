@@ -4,7 +4,6 @@
     <string name="title_activity">Danger Alert</string>
     <string name="sign_out_text">Sign out</string>
     <string name="language_setting">Language</string>
-    <string name="add_contacts">Contacts</string>
     <string name="abort_button">Cancel</string>
     <string name="gps_title">GPS is not enabled</string>
     <string name="gps_message">To continue please activate gps</string>
@@ -26,14 +25,15 @@
     <string name="fire_button">Fire alert</string>
     <string name="fire_report_result_ok">Your photo has been saved.</string>
     <string name="fire_report_result_error">An error occurred while saving photo.</string>
-    <string name="fire_sms_message_0">I am at a place with longitude :</string>
-    <string name="fire_sms_message_1">and latitude :</string>
-    <string name="fire_sms_message_2">and there is a fire.</string>
+    <string name="fire_sms_message">I am at location %f, %f  and I spotted a fire.</string>
     <string name="fire_message_sent">Your report has been sent</string>
     <string name="location_error">Your loction has not been set.</string>
     <!-- fall string values-->
     <string name="fall_message_sent">A message has been sent to your contacts.</string>
-    <string name="fall_message">I am in need of help at location :</string>
+    <string name="fall_message">I am in need of help at location: %f, %f</string>
+    <string name="false_alarm">False alarm! I am OK.</string>
+    <string name="false_alarm_message">Cancellation has been sent to you contacts</string>
+    <string name="cancellation_button">Cancel The Alert</string>
     <!-- contacts values-->
     <string name="add_contacts_title">Add up to 3 emergency contacts</string>
     <string name="full_contacts_title">Emergency contacts</string>

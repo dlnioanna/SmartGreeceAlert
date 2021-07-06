@@ -3,7 +3,6 @@
     <string name="title_activity">Ενημέρωση Κινδύνου</string>
     <string name="sign_out_text">Αποσύνδεση</string>
     <string name="language_setting">Γλώσσα</string>
-    <string name="add_contacts">Επαφές</string>
     <string name="abort_button">Ακύρωση</string>
     <string name="gps_title">GPS απενεργοποιημένο</string>
     <string name="gps_message">Για να συνεχίσετε ενεργοποιήστε την τοποθεσία συσκευής.</string>
@@ -28,14 +27,15 @@
     <string name="fire_button">Σήμα κινδύνου πυρκαγιάς</string>
     <string name="fire_report_result_ok">Η φωτογραφία σας αποθηκεύτηκε.</string>
     <string name="fire_report_result_error">Παρουσιάστηκε σφάλμα κατά την αποθήκευση.</string>
-    <string name="fire_sms_message_0">Βρίσκομαι στην τοποθεσία με γεωγραφικό μήκος :</string>
-    <string name="fire_sms_message_1">και γεωγραφικό πλάτος :</string>
-    <string name="fire_sms_message_2">και παρατηρώ μια πυρκαγιά.</string>
+    <string name="fire_sms_message">Βρίσκομαι στην τοποθεσία %f, %f και εντόπισα φωτιά.</string>
     <string name="fire_message_sent">Η αναφορά σας έχει σταλεί</string>
     <string name="location_error">Δεν έχει εντοπιστεί η τοποθεσία σας.</string>
     <!-- fall string values-->
     <string name="fall_message_sent">Έχει σταλεί ειδοποίηση στις επαφές σας.</string>
-    <string name="fall_message">Έχω ακινητοποιηθεί στην τοποθεσία :</string>
+    <string name="fall_message">Χρειάζομαι βοήθεια στην τοποθεσία: %f, %f</string>
+    <string name="false_alarm">Άκυρος ο συναγερμός! Όλα καλά.</string>
+    <string name="false_alarm_message">Η ακύρωση έχει σταλεί στις επαφές σας</string>
+    <string name="cancellation_button">Ακύρωση Ειδοποίησης</string>
     <!-- contacts values-->
     <string name="add_contacts_title">Προσθέστε μέχρι 3 επαφές έκτακτης ανάγκης</string>
     <string name="full_contacts_title">Επαφές έκτακτης ανάγκης</string>
