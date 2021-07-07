@@ -72,7 +72,8 @@ import static android.Manifest.permission.SEND_SMS;
 public class AlertActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
     private static final String TAG = "AlertActivity";
     private static final String ACCELEROMETER_RECEIVER = "accelerometer_gravity_receiver";
-    private static final String REPORTS = "reports";
+    public static final String REPORTS = "reports";
+    public static final String REPORT_TYPE = "type";
     public static final int REQUEST_LOCATION = 1000;
     public static final int REQUEST_PERMISSIONS = 1100;
     public static final int TAKE_PICTURE = 2000;
@@ -371,10 +372,13 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                 //TODO: CountDown to 30000 ms
                 timer = new CountDownTimer(10000, 1000) {
                     @Override
-                    public void onTick(long l) {
-                        binding.text.setText(String.valueOf((int) l / 1000));
+                    public void onTick(long leftTimeInMilliseconds) {
+                        long seconds = leftTimeInMilliseconds / 1000;
+                        binding.text.setText(String.valueOf((long) seconds));
                         player.start();
+                        binding.timerProgressBar.setVisibility(View.VISIBLE);
                         binding.abortButton.setVisibility(View.VISIBLE);
+                        binding.timerProgressBar.setProgress((int)seconds,true);
                     }
 
                     @Override
@@ -438,6 +442,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     /* Called when user cancels the countdown and the message is not sent
     or if message is already sent, sends a cancellation message */
     private void cancelAlarm() {
+        binding.timerProgressBar.setVisibility(View.GONE);
         if(!isAlertMessageSent){
             player.stop();
             try {
@@ -492,6 +497,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     // save data to prevent losing them on screen rotation when app is running but not shown
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
+        // todo: save timer state on screen rotation
         outState.putParcelable("f_user", user);
         outState.putParcelable("current_location", currentLocation);
         super.onSaveInstanceState(outState);
@@ -501,6 +507,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+        // todo: restore timer state on screen rotation
         user = savedInstanceState.getParcelable("f_user");
         currentLocation = savedInstanceState.getParcelable("current_location");
     }
