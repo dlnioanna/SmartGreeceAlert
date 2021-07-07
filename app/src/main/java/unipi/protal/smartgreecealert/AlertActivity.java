@@ -507,9 +507,10 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
     // Sends SMS to contacts provided by the user in shared preferences
     private void sendTextMessage(ReportType reportType){
+        List<EmergencyContact> emergencyContactList = ContactsUtils.getSavedContacts(this);
         //TODO: Connect contacts with shared preferences
 //        String phoneNumber = "6932474176";
-        String phoneNumber = "6947679760";
+//        String phoneNumber = "6947679760";
         String message = "SOS";
         String toastMessage = "Message has been sent successfully";
         switch (reportType){
@@ -534,7 +535,9 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         //Send SMS
         SmsManager sms = SmsManager.getDefault();
         //TODO: Enable send SMS
-        sms.sendTextMessage(phoneNumber, null, message, null, null);
+        for(EmergencyContact e:emergencyContactList) {
+            sms.sendTextMessage(e.getTelephone(), null, message, null, null);
+        }
         final String msg = toastMessage;
         //Run Toast in UIThread when sendTextMessage is called from a worker thread.
         runOnUiThread(()->{

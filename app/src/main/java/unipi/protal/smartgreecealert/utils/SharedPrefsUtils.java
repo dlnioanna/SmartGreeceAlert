@@ -25,7 +25,6 @@ public static final String EMERGENCY_CONTACTS="emergency_contacts";
         return lang;
     }
 
-
     public static void updateLanguage(Context ctx, String lang)
     {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(ctx);
@@ -47,8 +46,8 @@ public static final String EMERGENCY_CONTACTS="emergency_contacts";
 
     public static String getEmergencyContacts(Context ctx){
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
-        Gson gson = new Gson();
         String json = prefs.getString(EMERGENCY_CONTACTS, null);
         return json;
     }
+
 }

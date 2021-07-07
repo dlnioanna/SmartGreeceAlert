@@ -39,6 +39,8 @@
         <android.widget.Button
             android:id="@+id/abort_button"
             style="@style/AbortButtonStyle"
+            android:layout_width="5dp"
+            android:layout_height="9dp"
             app:layout_constraintBottom_toTopOf="@id/fire_button"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

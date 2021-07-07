@@ -24,6 +24,14 @@ public class ContactsUtils {
         SharedPrefsUtils.setEmergencyContacts(ctx, emergencyContactList);
     }
 
+    public static void editContact(EmergencyContact emergencyContact,int position, Context ctx) {
+        List<EmergencyContact> emergencyContactList;
+        emergencyContactList = getSavedContacts(ctx);
+        emergencyContactList.remove(position);
+        emergencyContactList.add(position,emergencyContact);
+        SharedPrefsUtils.setEmergencyContacts(ctx, emergencyContactList);
+    }
+
     public static List<EmergencyContact> getSavedContacts(Context ctx) {
         String sharedPrefContactList = SharedPrefsUtils.getEmergencyContacts(ctx);
         Gson gson = new Gson();
