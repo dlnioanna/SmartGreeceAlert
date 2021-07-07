@@ -2,29 +2,16 @@ package unipi.protal.smartgreecealert;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.GestureDetector;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
-
-import unipi.protal.smartgreecealert.databinding.ActivityAlertBinding;
 import unipi.protal.smartgreecealert.databinding.ActivityContactsBinding;
 import unipi.protal.smartgreecealert.entities.EmergencyContact;
 import unipi.protal.smartgreecealert.utils.ContactsUtils;
@@ -191,7 +178,7 @@ public class ContactsActivity extends AppCompatActivity {
         textView.setText(getString(R.string.contact_delete));
         textView.setPadding(20, 30, 20, 30);
         textView.setTextSize(20F);
-        textView.setTextColor(getColor(R.color.red));
+        textView.setTextColor(getColor(R.color.primary));
         textView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         builder.setCustomTitle(textView);
         View viewInflated = LayoutInflater.from(this).inflate(R.layout.delete_contact, (ViewGroup) view, false);
