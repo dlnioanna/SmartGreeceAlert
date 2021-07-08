@@ -55,8 +55,7 @@
                     app:layout_constraintTop_toBottomOf="@+id/text"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    android:max="10"
-                    android:progress="1"/>
+                   />
                 <android.widget.Button
                     android:id="@+id/abort_button"
                     style="@style/AbortButtonStyle"

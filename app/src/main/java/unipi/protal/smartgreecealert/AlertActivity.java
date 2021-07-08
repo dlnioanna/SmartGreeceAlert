@@ -371,6 +371,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(ACCELEROMETER_RECEIVER)) {
                 //TODO: CountDown to 30000 ms
+                binding.timerProgressBar.setMax(10);
                 timer = new CountDownTimer(10000, 1000) {
                     @Override
                     public void onTick(long leftTimeInMilliseconds) {
