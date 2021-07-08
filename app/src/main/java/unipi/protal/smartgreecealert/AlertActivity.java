@@ -140,7 +140,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             }
         }
         startGps();
-
     }
 
     // create menu on the top right corner
@@ -416,7 +415,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                         e.printStackTrace();
                     }
                     if(currentLocation != null){
-                        //Call sendReportMessageHandler back in UIThread
                         //Save report to Firebase
                         saveReport(ReportType.FALL_REPORT, timeOfIncident);
                         //Send SMS
@@ -508,7 +506,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     // Sends SMS to contacts provided by the user in shared preferences
     private void sendTextMessage(ReportType reportType){
         List<EmergencyContact> emergencyContactList = ContactsUtils.getSavedContacts(this);
-        //TODO: Connect contacts with shared preferences
 //        String phoneNumber = "6932474176";
 //        String phoneNumber = "6947679760";
         String message = "SOS";
@@ -534,7 +531,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         }
         //Send SMS
         SmsManager sms = SmsManager.getDefault();
-        //TODO: Enable send SMS
         for(EmergencyContact e:emergencyContactList) {
             sms.sendTextMessage(e.getTelephone(), null, message, null, null);
         }
@@ -548,5 +544,4 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             binding.abortButton.setText(getString(R.string.cancellation_button));
         });
     }
-
 }
