@@ -12,5 +12,6 @@
     <color name="primary">#355BEA</color>
     <color name="primary_variant">#1840D5</color>
     <color name="gray">#8F9095</color>
+    <color name="timer_color">#72C4FB</color>
 
 </resources>
