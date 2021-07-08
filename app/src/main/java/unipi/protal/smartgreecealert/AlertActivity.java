@@ -6,6 +6,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import android.animation.ValueAnimator;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -374,16 +375,18 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                     @Override
                     public void onTick(long leftTimeInMilliseconds) {
                         long seconds = leftTimeInMilliseconds / 1000;
-                        binding.text.setText(String.valueOf((long) seconds));
                         player.start();
+                        binding.timerText.setVisibility(View.VISIBLE);
                         binding.timerProgressBar.setVisibility(View.VISIBLE);
                         binding.abortButton.setVisibility(View.VISIBLE);
+                        binding.timerText.setText(String.valueOf((long) seconds));
                         binding.timerProgressBar.setProgress((int)seconds,true);
                     }
 
                     @Override
                     public void onFinish() {
                         cancelAlarm();
+                        binding.timerText.setVisibility(View.GONE);
                         binding.text.setText("finished");
                         //Get epochTime of the incident
                         long incidentTime = Instant.now().toEpochMilli();
@@ -555,5 +558,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             binding.abortButton.setText(getString(R.string.cancellation_button));
         });
     }
+
+
 
 }

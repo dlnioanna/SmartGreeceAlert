@@ -42,6 +42,13 @@
         <item name="android:textAllCaps">false</item>
         <item name="android:gravity">center</item>
     </style>
+    <style name="TextTimesStyle">
+        <item name="android:layout_width">@dimen/timer_text_dimension</item>
+        <item name="android:layout_height">@dimen/timer_text_dimension</item>
+        <item name="android:textColor">@color/primary_light</item>
+        <item name="android:textSize">@dimen/timer_text_size</item>
+        <item name="android:gravity">center</item>
+    </style>
 
     <style name="FABStyle">
         <item name="android:layout_width">wrap_content</item>
@@ -83,6 +90,8 @@
     </style>
 
     <style name="CircularDeterminateProgressBar">
+        <item name="android:layout_width">@dimen/timer_progress_bar_dimension</item>
+        <item name="android:layout_height">@dimen/timer_progress_bar_dimension</item>
         <item name="android:indeterminateOnly">false</item>
         <item name="android:progressDrawable">@drawable/circular_progress_bar</item>
     </style>

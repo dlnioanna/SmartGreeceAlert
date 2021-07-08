@@ -40,17 +40,23 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"/>
+
+                <TextView
+                    android:id="@+id/timer_text"
+                    style="@style/TextTimesStyle"
+                    app:layout_constraintBottom_toBottomOf="@+id/timer_progress_bar"
+                    app:layout_constraintEnd_toEndOf="@+id/timer_progress_bar"
+                    app:layout_constraintStart_toStartOf="@+id/timer_progress_bar"
+                    app:layout_constraintTop_toBottomOf="@+id/text" />
                 <ProgressBar
                     android:id="@+id/timer_progress_bar"
                     style="@style/CircularDeterminateProgressBar"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
                     android:visibility="gone"
                     app:layout_constraintTop_toBottomOf="@+id/text"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    android:max="100"
-                    android:progress="60"/>
+                    android:max="10"
+                    android:progress="1"/>
                 <android.widget.Button
                     android:id="@+id/abort_button"
                     style="@style/AbortButtonStyle"
