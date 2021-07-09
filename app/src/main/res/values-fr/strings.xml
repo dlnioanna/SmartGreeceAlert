@@ -44,4 +44,9 @@
     <string name="contact_edit">Éditer</string>
     <string name="contact_delete">Effacer</string>
     <string name="add_contacts">Contacts</string>
+    <!-- statistics titles-->
+    <string name="statistics_fire">Feu</string>
+    <string name="statistics_fall">La baisse</string>
+    <string name="statistics_earthquake">Tremblement de terre</string>
+    <string name="statistics_false_alarm">Annulé</string>
 </resources>

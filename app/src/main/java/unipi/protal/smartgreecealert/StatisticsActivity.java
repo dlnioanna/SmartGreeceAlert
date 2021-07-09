@@ -6,16 +6,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
-import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.utils.ColorTemplate;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -23,23 +21,28 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import unipi.protal.smartgreecealert.databinding.ActivityStatisticsBinding;
-import unipi.protal.smartgreecealert.entities.EmergencyContact;
 import unipi.protal.smartgreecealert.entities.Report;
-import unipi.protal.smartgreecealert.utils.ContactsUtils;
+import unipi.protal.smartgreecealert.entities.ReportType;
 
 import static unipi.protal.smartgreecealert.AlertActivity.REPORTS;
 
 public class StatisticsActivity extends AppCompatActivity {
     private ActivityStatisticsBinding binding;
     private FirebaseDatabase firebaseDatabase;
-    private DatabaseReference databaseReference,databaseReference2;
+    private DatabaseReference databaseReference, databaseReference2;
     private ArrayList<Report> reportList = new ArrayList<>();
+    private ArrayList<Report> reportFallList = new ArrayList<>();
+    private ArrayList<Report> reportErathquakeList = new ArrayList<>();
+    private ArrayList<Report> reportFireList = new ArrayList<>();
+    private ArrayList<Report> reportFalseAlarmList = new ArrayList<>();
+    private List<ArrayList<Report>> allReportLists = new ArrayList<>();
+    private FirebaseUser user;
+    private FirebaseAuth firebaseAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,43 +50,59 @@ public class StatisticsActivity extends AppCompatActivity {
         binding = ActivityStatisticsBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
         setContentView(view);
+        firebaseAuth = FirebaseAuth.getInstance();
+        user = firebaseAuth.getCurrentUser();
         firebaseDatabase = FirebaseDatabase.getInstance();
-        databaseReference = firebaseDatabase.getReference(REPORTS);
-        Log.e("statistics",databaseReference.toString());
-databaseReference.addListenerForSingleValueEvent(
-        new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                //iterate through each user, ignoring their UID
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                   Report report = snapshot.getValue(Report.class);
-                   reportList.add(report);
+        databaseReference = firebaseDatabase.getReference(REPORTS).child(user.getUid());
+        Log.e("statistics", databaseReference.toString());
+        Log.e("statistics user id ", user.getUid());
+        databaseReference.addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        //iterate through each user, ignoring their UID
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            Report report = snapshot.getValue(Report.class);
+                            reportList.add(report);
 
+                            if (report.getType().equals(ReportType.EARTHQUAKE_REPORT)) {
+                                reportErathquakeList.add(report);
+                            } else if (report.getType().equals(ReportType.FALL_REPORT)) {
+                                reportFallList.add(report);
+                            } else if (report.getType().equals(ReportType.FIRE_REPORT)) {
+                                reportFireList.add(report);
+                            } else if (report.getType().equals(ReportType.FALSE_ALARM)) {
+                                reportFalseAlarmList.add(report);
+                            }
+                        }
+                        allReportLists.add(reportErathquakeList);
+                        allReportLists.add(reportFallList);
+                        allReportLists.add(reportFalseAlarmList);
+                        allReportLists.add(reportErathquakeList);
+                        setUpPieChart();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
                 }
-                Log.e("statistics datasnapshot", String.valueOf(reportList.size()));
-            }
+        );
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        }
-);
-
-
-
-
-        setUpPieChart();
     }
 
 
     private void setUpPieChart() {
-        List<EmergencyContact> emergencyContactList = ContactsUtils.getSavedContacts(getApplicationContext());
         List<PieEntry> pieEntries = new ArrayList<>();
-        for (EmergencyContact e : emergencyContactList) {
-            pieEntries.add(new PieEntry(01f, e.getLastName()));
+        for ( ArrayList<Report> report : allReportLists) {
+            pieEntries.add(new PieEntry(report.size(), "stat"));
+            binding.pieChart.setVisibility(View.VISIBLE);
         }
-        binding.pieChart.setVisibility(View.VISIBLE);
+//        for (Report report : reportList) {
+//            pieEntries.add(new PieEntry(01f, report));
+//            binding.pieChart.setVisibility(View.VISIBLE);
+//        }
+
         binding.pieChart.animateXY(2500, 2500);
         PieDataSet pieDataSet = new PieDataSet(pieEntries, "pie chart entries");
         pieDataSet.setColors(ColorTemplate.COLORFUL_COLORS);
@@ -96,21 +115,4 @@ databaseReference.addListenerForSingleValueEvent(
         binding.pieChart.invalidate();
     }
 
-    private void getReportList(String id) {
-        databaseReference.child(id).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    Report report = snapshot.getValue(Report.class);
-                    reportList.add(report);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                // Getting hospitals failed, show a message
-                Toast.makeText(getApplicationContext(), databaseError.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
 }
