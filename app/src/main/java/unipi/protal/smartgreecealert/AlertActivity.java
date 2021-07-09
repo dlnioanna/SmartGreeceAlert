@@ -55,6 +55,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import unipi.protal.smartgreecealert.databinding.ActivityAlertBinding;
 import unipi.protal.smartgreecealert.entities.EmergencyContact;
@@ -95,7 +96,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private StorageReference storageReference;
     private CountDownTimer timer;
     private Report lastReport;
-    int earthquakeIncidents;
+    AtomicInteger earthquakeIncidents;
     AtomicBoolean isAlertMessageSent;
     AtomicBoolean isEarthquakeReportSent;
 
@@ -117,6 +118,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         player = MediaPlayer.create(this, R.raw.clock_sound);
         accelerometerReceiver = new AccelerometerReceiver();
         sensorServiceIntent = new Intent(this, SensorService.class);
+        earthquakeIncidents = new AtomicInteger(0);
         isAlertMessageSent = new AtomicBoolean(false);
         isEarthquakeReportSent = new AtomicBoolean(false);
         IntentFilter intentFilter = new IntentFilter();
@@ -401,17 +403,23 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                 timer.start();
             }
             if (intent.getAction().equals(EARTHQUAKE_RECEIVER)){
+                Toast.makeText(context.getApplicationContext(),
+                        "Sensing Earthquake...", Toast.LENGTH_SHORT).show();
                 long eventTime = Instant.now().toEpochMilli();
                 if (currentLocation != null){
                     //Save potential earthquake incident to firebase
                     sendPotentialEarthquake(eventTime);
                     //Check for similar incidents in 10km radius
-                    earthquakeIncidents = 0;
+                    earthquakeIncidents.set(0);
                     isEarthquakeReportSent.set(false);
                     getEarthquakeValidation(eventTime);
                     /* Else if this is the very first incident,
                     retry after 5 seconds one more time to find more incidents. */
                     repeatEarthquakeValidationAsync(eventTime);
+                }
+                else {
+                    Toast.makeText(context.getApplicationContext(),
+                            "No GPS connection", Toast.LENGTH_SHORT).show();
                 }
             }
         }
@@ -474,7 +482,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         DatabaseReference dbRef = firebaseDatabase.getReference().child(EARTHQUAKE_INCIDENTS);
         //Get earthquake records of the last minute
         Query query = dbRef.orderByChild("date").startAfter(Instant.now().minusSeconds(60).toEpochMilli());
-        ValueEventListener listener = new ValueEventListener() {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()){
@@ -485,12 +493,12 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                     location.setLongitude(report.getLongitude());
                     //Distance is less or equal to 10km
                     if (currentLocation != null && currentLocation.distanceTo(location) <= 10000){
-                        earthquakeIncidents++;
+                        earthquakeIncidents.getAndIncrement();
                     }
                 }
                 Log.println(Log.DEBUG, TAG, "Incidents in 10km range: " +earthquakeIncidents);
                 //If 3 or more incidents have been detected, send earthquake report and SMS
-                if (earthquakeIncidents > 2 && !isEarthquakeReportSent.get()){
+                if (earthquakeIncidents.get() > 2 && !isEarthquakeReportSent.get()){
                     //If there is an earthquake, save report to firebase and send SMS.
                     saveReport(ReportType.EARTHQUAKE_REPORT, eventTime);
                     sendTextMessage(ReportType.EARTHQUAKE_REPORT);
@@ -500,11 +508,9 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
+                //On Cancelled
             }
-        };
-        query.addListenerForSingleValueEvent(listener);
-        query.removeEventListener(listener);
+        });
     }
 
     // Retry after 5 seconds one more time to find more incidents.
@@ -517,7 +523,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                if(earthquakeIncidents == 1 && !isEarthquakeReportSent.get()){
+                if(earthquakeIncidents.get() == 1 && !isEarthquakeReportSent.get()){
                     getEarthquakeValidation(eventTime);
                 }
             }
