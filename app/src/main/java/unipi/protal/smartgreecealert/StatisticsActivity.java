@@ -21,13 +21,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,8 +37,7 @@ import static unipi.protal.smartgreecealert.AlertActivity.REPORTS;
 public class StatisticsActivity extends AppCompatActivity {
     private ActivityStatisticsBinding binding;
     private FirebaseDatabase firebaseDatabase;
-    private DatabaseReference databaseReference;
-    private FirebaseFirestore firestore;
+    private DatabaseReference databaseReference,databaseReference2;
     private ArrayList<Report> reportList = new ArrayList<>();
 
     @Override
@@ -55,48 +47,15 @@ public class StatisticsActivity extends AppCompatActivity {
         View view = binding.getRoot();
         setContentView(view);
         firebaseDatabase = FirebaseDatabase.getInstance();
-//        databaseReference = firebaseDatabase.getReference(REPORTS);
-        firestore = FirebaseFirestore.getInstance();
-        CollectionReference collectionReference = firestore.collection(REPORTS);
-        Log.e("Statistics activity id",collectionReference.getId());
-        Log.e("Statistics activity path",collectionReference.getPath());
-        Query query = collectionReference.whereEqualTo("type", "FIRE_REPORT");
-        Log.e("Statistics activity query 1",query.toString());
+        databaseReference = firebaseDatabase.getReference(REPORTS);
+        Log.e("statistics 1",databaseReference.toString());
+        databaseReference2 = firebaseDatabase.getReference();
+        Log.e("statistics 2",databaseReference.toString());
 
-        DocumentReference docRef = collectionReference.document();
-        Log.e("Statistics activity docRef id",docRef.getId());
-        Log.e("Statistics activity docRef path",docRef.getPath());
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                        Log.d("Statistics activity doc exists", "DocumentSnapshot data: " + document.getData());
-                        Toast.makeText(getApplicationContext(),"eeeeeeeeee",Toast.LENGTH_SHORT).show();
-                    } else {
-                        Log.d("Statistics activity doc does not exist", "No such document");
-                        Toast.makeText(getApplicationContext(),"aaaaaaaaaaa",Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Log.d("Statistics activity error doc", "get failed with ", task.getException());
-                    Toast.makeText(getApplicationContext(),"yyyyyyyyyy",Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-//               docRef .get()
-//                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-//                    @Override
-//                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-//                        if (task.isSuccessful()) {
-//                            for (QueryDocumentSnapshot document : task.getResult()) {
-//                                Log.e("Statistics activity query", document.getId() + " => " + document.getData());
-//                            }
-//                        }else {
-//                            Log.d("Statistics activity error query", "Error getting documents: ", task.getException());
-//                        }
-//                    }
-//                });
+
+
+
+
         setUpPieChart();
     }
 
