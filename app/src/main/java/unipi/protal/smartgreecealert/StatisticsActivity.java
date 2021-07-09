@@ -98,11 +98,6 @@ public class StatisticsActivity extends AppCompatActivity {
             pieEntries.add(new PieEntry(report.size(), "stat"));
             binding.pieChart.setVisibility(View.VISIBLE);
         }
-//        for (Report report : reportList) {
-//            pieEntries.add(new PieEntry(01f, report));
-//            binding.pieChart.setVisibility(View.VISIBLE);
-//        }
-
         binding.pieChart.animateXY(2500, 2500);
         PieDataSet pieDataSet = new PieDataSet(pieEntries, "pie chart entries");
         pieDataSet.setColors(ColorTemplate.COLORFUL_COLORS);
