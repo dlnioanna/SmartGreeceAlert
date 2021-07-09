@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import unipi.protal.smartgreecealert.databinding.ActivityStatisticsBinding;
 import unipi.protal.smartgreecealert.entities.EmergencyContact;
@@ -48,10 +49,26 @@ public class StatisticsActivity extends AppCompatActivity {
         setContentView(view);
         firebaseDatabase = FirebaseDatabase.getInstance();
         databaseReference = firebaseDatabase.getReference(REPORTS);
-        Log.e("statistics 1",databaseReference.toString());
-        databaseReference2 = firebaseDatabase.getReference();
-        Log.e("statistics 2",databaseReference.toString());
+        Log.e("statistics",databaseReference.toString());
+databaseReference.addListenerForSingleValueEvent(
+        new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                //iterate through each user, ignoring their UID
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                   Report report = snapshot.getValue(Report.class);
+                   reportList.add(report);
 
+                }
+                Log.e("statistics datasnapshot", String.valueOf(reportList.size()));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        }
+);
 
 
 

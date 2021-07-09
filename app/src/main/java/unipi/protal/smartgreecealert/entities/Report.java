@@ -14,6 +14,8 @@ public class Report implements Serializable {
     private String photo;
     private boolean canceled;
 
+    public Report(){}
+
     public Report(ReportType type, Long date){
         this.type = type;
         this.date = date;

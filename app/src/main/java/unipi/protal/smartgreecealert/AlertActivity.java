@@ -75,6 +75,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private static final String ACCELEROMETER_RECEIVER = "accelerometer_gravity_receiver";
     public static final String REPORTS = "reports";
     public static final String REPORT_TYPE = "type";
+    public static final String EARTHQUAKE_REPORT = "earthquake_incidents";
     public static final int REQUEST_LOCATION = 1000;
     public static final int REQUEST_PERMISSIONS = 1100;
     public static final int TAKE_PICTURE = 2000;
