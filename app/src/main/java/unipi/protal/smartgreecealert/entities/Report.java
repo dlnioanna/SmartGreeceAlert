@@ -7,12 +7,15 @@ import java.io.Serializable;
 public class Report implements Serializable {
 
 
-    private final ReportType type;
-    private double latitude ;
-    private double longitude;
-    private long date;
+    private ReportType type;
+    private Double latitude ;
+    private Double longitude;
+    private Long date;
     private String photo;
-    private boolean canceled;
+    private Boolean canceled;
+
+    public Report() {
+    }
 
     public Report(ReportType type, Long date){
         this.type = type;
@@ -39,6 +42,10 @@ public class Report implements Serializable {
 
     public ReportType getType() {
         return type;
+    }
+
+    public void setType(ReportType type) {
+        this.type = type;
     }
 
     public Double getLatitude() {

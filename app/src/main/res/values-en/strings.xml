@@ -10,7 +10,6 @@
     <string name="gps_yes">YES</string>
     <string name="gps_no">NO</string>
     <string name="statistics_setting">Statistics</string>
-    <string name="maps_api_key">AIzaSyCaQaIZGhLJcIFWbP-ouDszFh1IobgEsQA</string>
     <!--  Language Preferences  -->
     <string name="preferences_tittle">Επιλογή γλώσσας</string>
 <!--    <string name="preferences_greek_key">greek</string>-->
@@ -44,4 +43,6 @@
     <string name="contact_edit">Edit</string>
     <string name="contact_delete">Delete</string>
     <string name="add_contacts">Contacts</string>
+    <string name="earthquake_message">Earthquake was detected in the surrounding area %f, %f.</string>
+    <string name="earthquake_message_sent">The earthquake report has been sent to your contacts</string>
 </resources>
