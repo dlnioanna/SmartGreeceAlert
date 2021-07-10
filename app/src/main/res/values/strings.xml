@@ -51,5 +51,6 @@
     <string name="statistics_fire">Πυρκαγίες</string>
     <string name="statistics_fall">Πτώσεις</string>
     <string name="statistics_earthquake">Σεισμοί</string>
-    <string name="statistics_false_alarm">Άκυρα</string>
+    <string name="statistics_false_alarm">Ακυρωμένα συμβάντα</string>
+    <string name="statistics_user">Στατιστικά χρήστη</string>
 </resources>

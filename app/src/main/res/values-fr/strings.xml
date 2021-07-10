@@ -49,4 +49,5 @@
     <string name="statistics_fall">La baisse</string>
     <string name="statistics_earthquake">Tremblement de terre</string>
     <string name="statistics_false_alarm">Annulé</string>
+    <string name="statistics_user">Statistiques utilisateurs</string>
 </resources>

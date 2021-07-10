@@ -48,5 +48,6 @@
     <string name="statistics_fire">Fire</string>
     <string name="statistics_fall">Fall</string>
     <string name="statistics_earthquake">Earthquake</string>
-    <string name="statistics_false_alarm">Canceled</string>
+    <string name="statistics_false_alarm">Canceled reports</string>
+    <string name="statistics_user">User statistics</string>
 </resources>

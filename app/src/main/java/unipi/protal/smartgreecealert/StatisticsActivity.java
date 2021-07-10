@@ -34,13 +34,11 @@ import static unipi.protal.smartgreecealert.AlertActivity.REPORTS;
 public class StatisticsActivity extends AppCompatActivity {
     private ActivityStatisticsBinding binding;
     private FirebaseDatabase firebaseDatabase;
-    private DatabaseReference databaseReference, databaseReference2;
-    private ArrayList<Report> reportList = new ArrayList<>();
+    private DatabaseReference databaseReference;
     private ArrayList<Report> reportFallList = new ArrayList<>();
     private ArrayList<Report> reportErathquakeList = new ArrayList<>();
     private ArrayList<Report> reportFireList = new ArrayList<>();
     private ArrayList<Report> reportFalseAlarmList = new ArrayList<>();
-    private List<ArrayList<Report>> allReportLists = new ArrayList<>();
     private FirebaseUser user;
     private FirebaseAuth firebaseAuth;
 
@@ -54,17 +52,12 @@ public class StatisticsActivity extends AppCompatActivity {
         user = firebaseAuth.getCurrentUser();
         firebaseDatabase = FirebaseDatabase.getInstance();
         databaseReference = firebaseDatabase.getReference(REPORTS).child(user.getUid());
-        Log.e("statistics", databaseReference.toString());
-        Log.e("statistics user id ", user.getUid());
         databaseReference.addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        //iterate through each user, ignoring their UID
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             Report report = snapshot.getValue(Report.class);
-                            reportList.add(report);
-
                             if (report.getType().equals(ReportType.EARTHQUAKE_REPORT)) {
                                 reportErathquakeList.add(report);
                             } else if (report.getType().equals(ReportType.FALL_REPORT)) {
@@ -75,10 +68,6 @@ public class StatisticsActivity extends AppCompatActivity {
                                 reportFalseAlarmList.add(report);
                             }
                         }
-                        allReportLists.add(reportErathquakeList);
-                        allReportLists.add(reportFallList);
-                        allReportLists.add(reportFalseAlarmList);
-                        allReportLists.add(reportErathquakeList);
                         setUpPieChart();
                     }
 
@@ -94,19 +83,22 @@ public class StatisticsActivity extends AppCompatActivity {
 
     private void setUpPieChart() {
         List<PieEntry> pieEntries = new ArrayList<>();
-        for ( ArrayList<Report> report : allReportLists) {
-            pieEntries.add(new PieEntry(report.size(), "stat"));
-            binding.pieChart.setVisibility(View.VISIBLE);
-        }
-        binding.pieChart.animateXY(2500, 2500);
-        PieDataSet pieDataSet = new PieDataSet(pieEntries, "pie chart entries");
+        pieEntries.add(new PieEntry(reportErathquakeList.size(),getString(R.string.statistics_earthquake)));
+        pieEntries.add(new PieEntry(reportFallList.size(),getString(R.string.statistics_fall)));
+        pieEntries.add(new PieEntry(reportFireList.size(),getString(R.string.statistics_fire)));
+        pieEntries.add(new PieEntry(reportFalseAlarmList.size(),getString(R.string.statistics_false_alarm)));
+        binding.pieChart.animateXY(2000, 2000);
+        PieDataSet pieDataSet = new PieDataSet(pieEntries,null);
         pieDataSet.setColors(ColorTemplate.COLORFUL_COLORS);
         PieData pieData = new PieData(pieDataSet);
         binding.pieChart.setData(pieData);
         Description description = new Description();
-        description.setText("description text");
-        description.setTextColor(getColor(R.color.red));
+        description.setText(getString(R.string.statistics_user));
+        description.setTextColor(getColor(R.color.primary));
         binding.pieChart.setDescription(description);
+//        binding.pieChart.setCenterTextColor(getColor(R.color.red));
+        binding.pieChart.setEntryLabelColor(getColor(R.color.primary_variant));
+//        binding.pieChart.setHoleColor(getColor(R.color.red));
         binding.pieChart.invalidate();
     }
 
