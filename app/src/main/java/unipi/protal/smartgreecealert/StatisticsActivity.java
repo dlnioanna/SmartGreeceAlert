@@ -3,6 +3,7 @@ package unipi.protal.smartgreecealert;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -68,6 +69,10 @@ public class StatisticsActivity extends AppCompatActivity {
                                 reportFalseAlarmList.add(report);
                             }
                         }
+                        Log.e(" report list 1",reportFallList.size()+" reportFallList");
+                        Log.e(" report list 1",reportFireList.size()+" reportFireList");
+                        Log.e(" report list 1",reportErathquakeList.size()+" reportErathquakeList");
+                        Log.e(" report list 1",reportFalseAlarmList.size()+" reportFalseAlarmList");
                         setUpPieChart();
                     }
 
@@ -83,22 +88,41 @@ public class StatisticsActivity extends AppCompatActivity {
 
     private void setUpPieChart() {
         List<PieEntry> pieEntries = new ArrayList<>();
-        pieEntries.add(new PieEntry(reportErathquakeList.size(),getString(R.string.statistics_earthquake)));
-        pieEntries.add(new PieEntry(reportFallList.size(),getString(R.string.statistics_fall)));
-        pieEntries.add(new PieEntry(reportFireList.size(),getString(R.string.statistics_fire)));
-        pieEntries.add(new PieEntry(reportFalseAlarmList.size(),getString(R.string.statistics_false_alarm)));
+        if(reportFallList.size()!=0){
+            pieEntries.add(new PieEntry(reportFallList.size(),getString(R.string.statistics_fall)));
+        }
+        if(reportFireList.size()!=0){
+            pieEntries.add(new PieEntry(reportFireList.size(),getString(R.string.statistics_fire)));
+        }
+        if(reportErathquakeList.size()!=0){
+            pieEntries.add(new PieEntry(reportErathquakeList.size(),getString(R.string.statistics_earthquake)));
+        }
+        if(reportFalseAlarmList.size()!=0){
+            pieEntries.add(new PieEntry(reportFalseAlarmList.size(),getString(R.string.statistics_false_alarm)));
+        }
+        Log.e(" report list 2",reportFallList.size()+" reportFallList");
+        Log.e(" report list 2",reportFireList.size()+" reportFireList");
+        Log.e(" report list 2",reportErathquakeList.size()+" reportErathquakeList");
+        Log.e(" report list 2",reportFalseAlarmList.size()+" reportFalseAlarmList");
         binding.pieChart.animateXY(2000, 2000);
         PieDataSet pieDataSet = new PieDataSet(pieEntries,null);
         pieDataSet.setColors(ColorTemplate.COLORFUL_COLORS);
+        pieDataSet.setValueTextColor(getColor(R.color.white));
+        pieDataSet.setValueTextSize(10);
         PieData pieData = new PieData(pieDataSet);
         binding.pieChart.setData(pieData);
         Description description = new Description();
         description.setText(getString(R.string.statistics_user));
-        description.setTextColor(getColor(R.color.primary));
+        description.setTextSize(20);
+        binding.pieChart.setDrawEntryLabels(true);
+        binding.pieChart.setUsePercentValues(true);
         binding.pieChart.setDescription(description);
-//        binding.pieChart.setCenterTextColor(getColor(R.color.red));
-        binding.pieChart.setEntryLabelColor(getColor(R.color.primary_variant));
-//        binding.pieChart.setHoleColor(getColor(R.color.red));
+        binding.pieChart.setEntryLabelColor(getColor(R.color.white));
+        binding.pieChart.setEntryLabelTextSize(16);
+        binding.pieChart.setHoleRadius(0f);
+        binding.pieChart.setTransparentCircleRadius(0);
+        binding.statisticsProgressBar.setVisibility(View.GONE);
+        binding.pieChart.setVisibility(View.VISIBLE);
         binding.pieChart.invalidate();
     }
 
