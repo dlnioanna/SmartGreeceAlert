@@ -31,11 +31,7 @@ public static final String EMERGENCY_CONTACTS="emergency_contacts";
     public static void updateLanguage(Context ctx, Resources res, String lang)
     {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(ctx);
-//        Configuration cfg = new Configuration();
-//        ctx.getResources().updateConfiguration(cfg, null);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-//        editor.putString(LANGUAGE_KEY, lang);
-//        editor.apply();
         DisplayMetrics dm = res.getDisplayMetrics();
         Configuration conf = res.getConfiguration();
         conf.locale = new Locale(lang);

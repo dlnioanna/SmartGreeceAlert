@@ -65,6 +65,7 @@ import unipi.protal.smartgreecealert.services.SensorService;
 import unipi.protal.smartgreecealert.settings.SettingsActivity;
 import unipi.protal.smartgreecealert.utils.ContactsUtils;
 import unipi.protal.smartgreecealert.utils.ImageUtils;
+import unipi.protal.smartgreecealert.utils.LanguageUtils;
 import unipi.protal.smartgreecealert.utils.SharedPrefsUtils;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
@@ -103,6 +104,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         binding = ActivityAlertBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
         setContentView(view);
+        LanguageUtils.setLocale(this, SharedPrefsUtils.getCurrentLanguage(this));
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         firebaseAuth = FirebaseAuth.getInstance();

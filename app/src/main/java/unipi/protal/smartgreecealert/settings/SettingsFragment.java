@@ -34,9 +34,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 greekPreference.setChecked(true);
                 englishPreference.setChecked(false);
                 frenchPreference.setChecked(false);
-                Log.e("before selection",SharedPrefsUtils.getCurrentLanguage(getContext()));
                 SharedPrefsUtils.updateLanguage(getContext(), res, localeGR);
-                Log.e("after selection",SharedPrefsUtils.getCurrentLanguage(getContext()));
                 restartActivity();
                 return true;
             }
@@ -49,9 +47,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 greekPreference.setChecked(false);
                 englishPreference.setChecked(true);
                 frenchPreference.setChecked(false);
-                Log.e("before selection",SharedPrefsUtils.getCurrentLanguage(getContext()));
                 SharedPrefsUtils.updateLanguage(getContext(), res, localeEN);
-                Log.e("after selection",SharedPrefsUtils.getCurrentLanguage(getContext()));
                 restartActivity();
                 return true;
             }
@@ -64,20 +60,13 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 greekPreference.setChecked(false);
                 englishPreference.setChecked(false);
                 frenchPreference.setChecked(true);
-                Log.e("before selection",SharedPrefsUtils.getCurrentLanguage(getContext()));
                 SharedPrefsUtils.updateLanguage(getContext(), res, localeFR);
-                Log.e("after selection",SharedPrefsUtils.getCurrentLanguage(getContext()));
                 restartActivity();
                 return true;
             }
         });
     }
 
-    private Context updateResourcesLocale(Context context, Locale locale) {
-        Configuration configuration = new Configuration(context.getResources().getConfiguration());
-        configuration.setLocale(locale);
-        return context.createConfigurationContext(configuration);
-    }
 
     private void restartActivity() {
         Intent refresh = new Intent(getActivity(), getActivity()
