@@ -35,9 +35,9 @@ public class SensorService extends Service implements SensorEventListener {
     static boolean isPowerConnected;
     private List<MovementInstance> eqDataset;
     private long datasetDuration;
-    double aX;
-    double aY;
-    double aZ;
+    private double aX;
+    private double aY;
+    private double aZ;
 
     private List<MovementInstance> flDataset;
 

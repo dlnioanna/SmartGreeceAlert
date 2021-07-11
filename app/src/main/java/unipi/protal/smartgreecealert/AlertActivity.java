@@ -6,8 +6,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import android.animation.ValueAnimator;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -15,7 +13,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -80,8 +77,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private static final String EARTHQUAKE_RECEIVER = "Earthquake_receiver";
     public static final String REPORTS = "reports";
     private static final String EARTHQUAKE_INCIDENTS = "earthquake_incidents";
-    public static final String REPORT_TYPE = "type";
-    public static final String EARTHQUAKE_REPORT = "earthquake_incidents";
     public static final int REQUEST_LOCATION = 1000;
     public static final int REQUEST_PERMISSIONS = 1100;
     public static final int TAKE_PICTURE = 2000;

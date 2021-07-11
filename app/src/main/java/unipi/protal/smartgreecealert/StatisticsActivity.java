@@ -3,7 +3,6 @@ package unipi.protal.smartgreecealert;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -22,9 +21,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import unipi.protal.smartgreecealert.databinding.ActivityStatisticsBinding;
 import unipi.protal.smartgreecealert.entities.Report;
@@ -37,7 +34,7 @@ public class StatisticsActivity extends AppCompatActivity {
     private FirebaseDatabase firebaseDatabase;
     private DatabaseReference databaseReference;
     private ArrayList<Report> reportFallList = new ArrayList<>();
-    private ArrayList<Report> reportErathquakeList = new ArrayList<>();
+    private ArrayList<Report> reportEarthquakeList = new ArrayList<>();
     private ArrayList<Report> reportFireList = new ArrayList<>();
     private ArrayList<Report> reportFalseAlarmList = new ArrayList<>();
     private FirebaseUser user;
@@ -60,7 +57,7 @@ public class StatisticsActivity extends AppCompatActivity {
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             Report report = snapshot.getValue(Report.class);
                             if (report.getType().equals(ReportType.EARTHQUAKE_REPORT)) {
-                                reportErathquakeList.add(report);
+                                reportEarthquakeList.add(report);
                             } else if (report.getType().equals(ReportType.FALL_REPORT)) {
                                 reportFallList.add(report);
                             } else if (report.getType().equals(ReportType.FIRE_REPORT)) {
@@ -71,7 +68,7 @@ public class StatisticsActivity extends AppCompatActivity {
                         }
                         Log.e(" report list 1",reportFallList.size()+" reportFallList");
                         Log.e(" report list 1",reportFireList.size()+" reportFireList");
-                        Log.e(" report list 1",reportErathquakeList.size()+" reportErathquakeList");
+                        Log.e(" report list 1", reportEarthquakeList.size()+" reportErathquakeList");
                         Log.e(" report list 1",reportFalseAlarmList.size()+" reportFalseAlarmList");
                         setUpPieChart();
                     }
@@ -94,15 +91,15 @@ public class StatisticsActivity extends AppCompatActivity {
         if(reportFireList.size()!=0){
             pieEntries.add(new PieEntry(reportFireList.size(),getString(R.string.statistics_fire)));
         }
-        if(reportErathquakeList.size()!=0){
-            pieEntries.add(new PieEntry(reportErathquakeList.size(),getString(R.string.statistics_earthquake)));
+        if(reportEarthquakeList.size()!=0){
+            pieEntries.add(new PieEntry(reportEarthquakeList.size(),getString(R.string.statistics_earthquake)));
         }
         if(reportFalseAlarmList.size()!=0){
             pieEntries.add(new PieEntry(reportFalseAlarmList.size(),getString(R.string.statistics_false_alarm)));
         }
         Log.e(" report list 2",reportFallList.size()+" reportFallList");
         Log.e(" report list 2",reportFireList.size()+" reportFireList");
-        Log.e(" report list 2",reportErathquakeList.size()+" reportErathquakeList");
+        Log.e(" report list 2", reportEarthquakeList.size()+" reportErathquakeList");
         Log.e(" report list 2",reportFalseAlarmList.size()+" reportFalseAlarmList");
         binding.pieChart.animateXY(2000, 2000);
         PieDataSet pieDataSet = new PieDataSet(pieEntries,null);
