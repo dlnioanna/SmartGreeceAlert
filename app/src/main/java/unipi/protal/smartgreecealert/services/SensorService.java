@@ -33,10 +33,8 @@ public class SensorService extends Service implements SensorEventListener {
     private long freeFallTime;
     private PowerConnectionReceiver powerConnectionReceiver;
     static boolean isPowerConnected;
+    private long datasetDuration;
     private List<MovementInstance> eqDataset;
-    private long datasetDuration;
-    private long datasetDuration;
-
     private List<MovementInstance> flDataset;
 
     public SensorService() {
