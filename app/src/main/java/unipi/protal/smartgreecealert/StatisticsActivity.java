@@ -69,10 +69,6 @@ public class StatisticsActivity extends AppCompatActivity {
                                 reportFalseAlarmList.add(report);
                             }
                         }
-                        Log.e(" report list 1",reportFallList.size()+" reportFallList");
-                        Log.e(" report list 1",reportFireList.size()+" reportFireList");
-                        Log.e(" report list 1",reportErathquakeList.size()+" reportErathquakeList");
-                        Log.e(" report list 1",reportFalseAlarmList.size()+" reportFalseAlarmList");
                         setUpPieChart();
                     }
 
@@ -100,10 +96,6 @@ public class StatisticsActivity extends AppCompatActivity {
         if(reportFalseAlarmList.size()!=0){
             pieEntries.add(new PieEntry(reportFalseAlarmList.size(),getString(R.string.statistics_false_alarm)));
         }
-        Log.e(" report list 2",reportFallList.size()+" reportFallList");
-        Log.e(" report list 2",reportFireList.size()+" reportFireList");
-        Log.e(" report list 2",reportErathquakeList.size()+" reportErathquakeList");
-        Log.e(" report list 2",reportFalseAlarmList.size()+" reportFalseAlarmList");
         binding.pieChart.animateXY(2000, 2000);
         PieDataSet pieDataSet = new PieDataSet(pieEntries,null);
         pieDataSet.setColors(ColorTemplate.COLORFUL_COLORS);

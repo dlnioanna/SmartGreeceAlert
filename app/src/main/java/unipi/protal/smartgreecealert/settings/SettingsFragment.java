@@ -1,8 +1,11 @@
 package unipi.protal.smartgreecealert.settings;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.preference.CheckBoxPreference;
 import androidx.preference.Preference;
@@ -22,6 +25,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         String localeGR = getString(R.string.locale_greek);
         String localeEN = getString(R.string.locale_english);
         String localeFR = getString(R.string.locale_french);
+        Resources res = getResources();
         greekPreference = this.findPreference(getString(R.string.preferences_greek_key));
         greekPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
@@ -30,7 +34,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 greekPreference.setChecked(true);
                 englishPreference.setChecked(false);
                 frenchPreference.setChecked(false);
-                SharedPrefsUtils.updateLanguage(getContext(),localeGR);
+                Log.e("before selection",SharedPrefsUtils.getCurrentLanguage(getContext()));
+                SharedPrefsUtils.updateLanguage(getContext(), res, localeGR);
+                Log.e("after selection",SharedPrefsUtils.getCurrentLanguage(getContext()));
+                restartActivity();
                 return true;
             }
         });
@@ -42,7 +49,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 greekPreference.setChecked(false);
                 englishPreference.setChecked(true);
                 frenchPreference.setChecked(false);
-                SharedPrefsUtils.updateLanguage(getContext(),localeEN);
+                Log.e("before selection",SharedPrefsUtils.getCurrentLanguage(getContext()));
+                SharedPrefsUtils.updateLanguage(getContext(), res, localeEN);
+                Log.e("after selection",SharedPrefsUtils.getCurrentLanguage(getContext()));
+                restartActivity();
                 return true;
             }
         });
@@ -54,7 +64,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 greekPreference.setChecked(false);
                 englishPreference.setChecked(false);
                 frenchPreference.setChecked(true);
-                SharedPrefsUtils.updateLanguage(getContext(),localeFR);
+                Log.e("before selection",SharedPrefsUtils.getCurrentLanguage(getContext()));
+                SharedPrefsUtils.updateLanguage(getContext(), res, localeFR);
+                Log.e("after selection",SharedPrefsUtils.getCurrentLanguage(getContext()));
+                restartActivity();
                 return true;
             }
         });
@@ -66,32 +79,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         return context.createConfigurationContext(configuration);
     }
 
-
-    public CheckBoxPreference getEnglishPreference() {
-        return englishPreference;
+    private void restartActivity() {
+        Intent refresh = new Intent(getActivity(), getActivity()
+                .getClass());
+        startActivity(refresh);
+        getActivity().finish();
     }
-//    public String getCurrentLanguage(Context ctx)
-//    {
-//        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
-//        String lang = prefs.getString(getString(R.string.locale_key), getString(R.string.locale_greek));
-//        return lang;
-//    }
-//
-//    public void updateLanguage(Context ctx, String lang)
-//    {
-//        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(ctx);
-//        Configuration cfg = new Configuration();
-//        ctx.getResources().updateConfiguration(cfg, null);
-//        SharedPreferences.Editor editor = sharedPreferences.edit();
-//        editor.putString(getString(R.string.locale_key), lang);
-//        editor.apply();
-//    }
-
-//    public static void changeLocale(Context context, String locale) {
-//        Resources res = context.getResources();
-//        Configuration conf = res.getConfiguration();
-//        conf.locale = new Locale(locale);
-//        res.updateConfiguration(conf, res.getDisplayMetrics());
-//    }
 
 }
