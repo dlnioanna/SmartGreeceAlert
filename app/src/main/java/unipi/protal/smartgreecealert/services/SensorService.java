@@ -35,9 +35,7 @@ public class SensorService extends Service implements SensorEventListener {
     static boolean isPowerConnected;
     private List<MovementInstance> eqDataset;
     private long datasetDuration;
-    private double aX;
-    private double aY;
-    private double aZ;
+    private long datasetDuration;
 
     private List<MovementInstance> flDataset;
 
@@ -76,9 +74,9 @@ public class SensorService extends Service implements SensorEventListener {
 
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             /* Axis divided by Earth's Standard Gravity on surface 9.80665 m/s^2 */
-            aX = event.values[0] / 9.8665;
-            aY = event.values[1] / 9.8665;
-            aZ = event.values[2] / 9.8665;
+            double aX = event.values[0] / 9.8665;
+            double aY = event.values[1] / 9.8665;
+            double aZ = event.values[2] / 9.8665;
 
             if(!isPowerConnected){
                 // Call fall detection method - argument acceleration vector
