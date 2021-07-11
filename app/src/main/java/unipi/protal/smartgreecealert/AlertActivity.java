@@ -6,8 +6,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import android.animation.ValueAnimator;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -15,7 +13,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -37,7 +34,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -45,17 +41,21 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
-import java.security.Provider;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import unipi.protal.smartgreecealert.databinding.ActivityAlertBinding;
 import unipi.protal.smartgreecealert.entities.EmergencyContact;
@@ -65,7 +65,6 @@ import unipi.protal.smartgreecealert.services.SensorService;
 import unipi.protal.smartgreecealert.settings.SettingsActivity;
 import unipi.protal.smartgreecealert.utils.ContactsUtils;
 import unipi.protal.smartgreecealert.utils.ImageUtils;
-import unipi.protal.smartgreecealert.utils.LanguageUtils;
 import unipi.protal.smartgreecealert.utils.SharedPrefsUtils;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
@@ -74,9 +73,10 @@ import static android.Manifest.permission.SEND_SMS;
 public class AlertActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
     private static final String TAG = "AlertActivity";
     private static final String ACCELEROMETER_RECEIVER = "accelerometer_gravity_receiver";
-    public static final String REPORTS = "reports";
-    public static final String REPORT_TYPE = "type";
-    public static final String EARTHQUAKE_REPORT = "earthquake_incidents";
+    private static final String FALL_RECEIVER = "Fall_receiver";
+    private static final String EARTHQUAKE_RECEIVER = "Earthquake_receiver";
+    private static final String REPORTS = "reports";
+    private static final String EARTHQUAKE_INCIDENTS = "earthquake_incidents";
     public static final int REQUEST_LOCATION = 1000;
     public static final int REQUEST_PERMISSIONS = 1100;
     public static final int TAKE_PICTURE = 2000;
@@ -95,8 +95,11 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private FirebaseStorage firebaseStorage;
     private StorageReference storageReference;
     private CountDownTimer timer;
-    private boolean isAlertMessageSent;
     private Report lastReport;
+    AtomicInteger earthquakeIncidents;
+    AtomicBoolean isAlertMessageSent;
+    AtomicBoolean isEarthquakeReportSent;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +107,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         binding = ActivityAlertBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
         setContentView(view);
-        LanguageUtils.setLocale(this, SharedPrefsUtils.getCurrentLanguage(this));
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         firebaseAuth = FirebaseAuth.getInstance();
@@ -116,8 +118,13 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         player = MediaPlayer.create(this, R.raw.clock_sound);
         accelerometerReceiver = new AccelerometerReceiver();
         sensorServiceIntent = new Intent(this, SensorService.class);
+        earthquakeIncidents = new AtomicInteger(0);
+        isAlertMessageSent = new AtomicBoolean(false);
+        isEarthquakeReportSent = new AtomicBoolean(false);
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ACCELEROMETER_RECEIVER);
+        intentFilter.addAction(FALL_RECEIVER);
+        intentFilter.addAction(EARTHQUAKE_RECEIVER);
         registerReceiver(accelerometerReceiver, intentFilter);
         // startService(sensorServiceIntent);
         binding.abortButton.setOnClickListener(v -> {
@@ -145,7 +152,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             }
         }
         startGps();
-
     }
 
     // create menu on the top right corner
@@ -240,7 +246,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
     // stores reports on realtime database and informs the user with a Toast message if the upload is successful or not
     private void saveReport(ReportType reportType, Long time, Uri... uri) {
-        DatabaseReference dbref = firebaseDatabase.getReference().child(REPORTS);
+        DatabaseReference dbRef = firebaseDatabase.getReference().child(REPORTS);
         Report report;
         switch (reportType){
             case FIRE_REPORT:
@@ -258,7 +264,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             default:
                 throw new IllegalStateException("Unexpected value: " + reportType);
         }
-        dbref.child(user.getUid()).child(time.toString()).setValue(report)
+        dbRef.child(user.getUid()).child(time.toString()).setValue(report)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -326,7 +332,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     }
 
     /*
-   Method used by to check if the gps is enabled, if access to location is permited
+   Method used by to check if the gps is enabled, if access to location is permitted
     */
     private void startGps() {
         // if gps is not enabled show message that asks to enable it
@@ -343,7 +349,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         }
     }
 
-    // if gps is not enabled shows dialog that informs user to enable it from phone settings
+    // If GPS is not enabled shows dialog that informs user to enable it from phone settings
     public void showGPSDisabledDialog() {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
         alertDialog.setTitle(getString(R.string.gps_title));
@@ -372,25 +378,19 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private class AccelerometerReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(ACCELEROMETER_RECEIVER)) {
+            if (intent.getAction().equals(FALL_RECEIVER)) {
                 //TODO: CountDown to 30000 ms
-                binding.timerProgressBar.setMax(10);
                 timer = new CountDownTimer(10000, 1000) {
                     @Override
-                    public void onTick(long leftTimeInMilliseconds) {
-                        long seconds = leftTimeInMilliseconds / 1000;
+                    public void onTick(long l) {
+                        binding.text.setText(String.valueOf((int) l / 1000));
                         player.start();
-                        binding.timerText.setVisibility(View.VISIBLE);
-                        binding.timerProgressBar.setVisibility(View.VISIBLE);
                         binding.abortButton.setVisibility(View.VISIBLE);
-                        binding.timerText.setText(String.valueOf((long) seconds));
-                        binding.timerProgressBar.setProgress((int)seconds,true);
                     }
 
                     @Override
                     public void onFinish() {
                         cancelAlarm();
-                        binding.timerText.setVisibility(View.GONE);
                         binding.text.setText("finished");
                         //Get epochTime of the incident
                         long incidentTime = Instant.now().toEpochMilli();
@@ -401,6 +401,26 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                     }
                 };
                 timer.start();
+            }
+            if (intent.getAction().equals(EARTHQUAKE_RECEIVER)){
+                Toast.makeText(context.getApplicationContext(),
+                        "Sensing Earthquake...", Toast.LENGTH_SHORT).show();
+                long eventTime = Instant.now().toEpochMilli();
+                if (currentLocation != null){
+                    //Save potential earthquake incident to firebase
+                    sendPotentialEarthquake(eventTime);
+                    //Check for similar incidents in 10km radius
+                    earthquakeIncidents.set(0);
+                    isEarthquakeReportSent.set(false);
+                    getEarthquakeValidation(eventTime);
+                    /* Else if this is the very first incident,
+                    retry after 5 seconds one more time to find more incidents. */
+                    repeatEarthquakeValidationAsync(eventTime);
+                }
+                else {
+                    Toast.makeText(context.getApplicationContext(),
+                            "No GPS connection", Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }
@@ -427,13 +447,84 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                         e.printStackTrace();
                     }
                     if(currentLocation != null){
-                        //Call sendReportMessageHandler back in UIThread
                         //Save report to Firebase
                         saveReport(ReportType.FALL_REPORT, timeOfIncident);
                         //Send SMS
                         sendTextMessage(ReportType.FALL_REPORT);
                         break;
                     }
+                }
+            }
+        });
+        thread.start();
+    }
+
+    // Save potential earthquake reports in separate firebase node
+    private void sendPotentialEarthquake(long eventTime){
+        DatabaseReference dbRef = firebaseDatabase.getReference().child(EARTHQUAKE_INCIDENTS);
+        dbRef.push().setValue(new Report(ReportType.EARTHQUAKE_REPORT, currentLocation.getLatitude(),
+                currentLocation.getLongitude(), eventTime, false))
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        // Write was successful
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Write failed
+                    }
+                });
+    }
+
+    public void getEarthquakeValidation(long eventTime){
+        DatabaseReference dbRef = firebaseDatabase.getReference().child(EARTHQUAKE_INCIDENTS);
+        //Get earthquake records of the last minute
+        Query query = dbRef.orderByChild("date").startAfter(Instant.now().minusSeconds(60).toEpochMilli());
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                    Log.println(Log.DEBUG, TAG, dataSnapshot.toString());
+                    Report report = dataSnapshot.getValue(Report.class);
+                    Location location = new Location("target");
+                    location.setLatitude(report.getLatitude());
+                    location.setLongitude(report.getLongitude());
+                    //Distance is less or equal to 10km
+                    if (currentLocation != null && currentLocation.distanceTo(location) <= 10000){
+                        earthquakeIncidents.getAndIncrement();
+                    }
+                }
+                Log.println(Log.DEBUG, TAG, "Incidents in 10km range: " +earthquakeIncidents);
+                //If 3 or more incidents have been detected, send earthquake report and SMS
+                if (earthquakeIncidents.get() > 2 && !isEarthquakeReportSent.get()){
+                    //If there is an earthquake, save report to firebase and send SMS.
+                    saveReport(ReportType.EARTHQUAKE_REPORT, eventTime);
+                    sendTextMessage(ReportType.EARTHQUAKE_REPORT);
+                    isEarthquakeReportSent.set(true);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                //On Cancelled
+            }
+        });
+    }
+
+    // Retry after 5 seconds one more time to find more incidents.
+    private void repeatEarthquakeValidationAsync(long eventTime){
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if(earthquakeIncidents.get() == 1 && !isEarthquakeReportSent.get()){
+                    getEarthquakeValidation(eventTime);
                 }
             }
         });
@@ -447,10 +538,9 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     }
 
     /* Called when user cancels the countdown and the message is not sent
-    or if message is already sent, sends a cancellation message */
+    or if the message is already sent, sends a cancellation message */
     private void cancelAlarm() {
-        binding.timerProgressBar.setVisibility(View.GONE);
-        if(!isAlertMessageSent){
+        if(!isAlertMessageSent.get()){
             player.stop();
             try {
                 player.prepare();
@@ -467,7 +557,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         else {
             //TODO: Firebase canceled flag to true
             sendTextMessage(ReportType.FALSE_ALARM);
-            isAlertMessageSent = false;
+            isAlertMessageSent.set(false);
             binding.abortButton.setVisibility(View.GONE);
             binding.text.setText("abort");
         }
@@ -504,7 +594,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     // save data to prevent losing them on screen rotation when app is running but not shown
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
-        // todo: save timer state on screen rotation
         outState.putParcelable("f_user", user);
         outState.putParcelable("current_location", currentLocation);
         super.onSaveInstanceState(outState);
@@ -514,7 +603,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        // todo: restore timer state on screen rotation
         user = savedInstanceState.getParcelable("f_user");
         currentLocation = savedInstanceState.getParcelable("current_location");
     }
@@ -522,7 +610,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     // Sends SMS to contacts provided by the user in shared preferences
     private void sendTextMessage(ReportType reportType){
         List<EmergencyContact> emergencyContactList = ContactsUtils.getSavedContacts(this);
-        //TODO: Connect contacts with shared preferences
 //        String phoneNumber = "6932474176";
 //        String phoneNumber = "6947679760";
         String message = "SOS";
@@ -539,7 +626,9 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                 toastMessage = getString(R.string.fall_message_sent);
                 break;
             case EARTHQUAKE_REPORT:
-                //TODO: Earthquake Implementation
+                message = String.format(getString(R.string.earthquake_message),
+                        currentLocation.getLatitude(), currentLocation.getLongitude());
+                toastMessage = getString(R.string.earthquake_message_sent);
                 break;
             case FALSE_ALARM:
                 message = getString(R.string.false_alarm);
@@ -548,7 +637,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         }
         //Send SMS
         SmsManager sms = SmsManager.getDefault();
-        //TODO: Enable send SMS
         for(EmergencyContact e:emergencyContactList) {
             sms.sendTextMessage(e.getTelephone(), null, message, null, null);
         }
@@ -557,12 +645,9 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         runOnUiThread(()->{
             Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
             //Enable false alarm button
-            isAlertMessageSent = true;
+            isAlertMessageSent.set(true);
             binding.abortButton.setVisibility(View.VISIBLE);
             binding.abortButton.setText(getString(R.string.cancellation_button));
         });
     }
-
-
-
 }

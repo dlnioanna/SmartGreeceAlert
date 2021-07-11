@@ -9,7 +9,7 @@
     <string name="gps_yes">NAI</string>
     <string name="gps_no">ΟΧΙ</string>
     <string name="statistics_setting">Στατιστικά</string>
-    <string name="maps_api_key">AIzaSyCaQaIZGhLJcIFWbP-ouDszFh1IobgEsQA</string>
+    <string name="maps_api_key" translatable="false">AIzaSyCaQaIZGhLJcIFWbP-ouDszFh1IobgEsQA</string>
     <!--  Language Preferences  -->
     <string name="preferences_tittle">Επιλογή γλώσσας</string>
     <string name="preferences_greek_key" translatable="false">greek</string>
@@ -47,10 +47,6 @@
     <string name="contact_edit">Επεξεργασία</string>
     <string name="contact_delete">Διαγραφή</string>
     <string name="add_contacts">Επαφές</string>
-    <!-- statistics titles-->
-    <string name="statistics_fire">Πυρκαγίες</string>
-    <string name="statistics_fall">Πτώσεις</string>
-    <string name="statistics_earthquake">Σεισμοί</string>
-    <string name="statistics_false_alarm">Ακυρωμένα συμβάντα</string>
-    <string name="statistics_user">Στατιστικά χρήστη</string>
+    <string name="earthquake_message">Εντοπίστηκε σεισμος στην  ερύτερη περιοχή %f, %f.</string>
+    <string name="earthquake_message_sent">H αναφορά  σεισμού έχει σταλεί στις επαφές σας</string>
 </resources>
