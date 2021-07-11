@@ -15,8 +15,7 @@ public class MovementInstance {
         this.aX = aX;
         this.aY = aY;
         this.aZ = aZ;
-        /* Axis divided by Earth's Standard Gravity on surface 9.80665 m/s^2 */
-        this.accelerationVector = Math.sqrt(Math.pow(aX, 2) + Math.pow(aY, 2) + Math.pow(aZ, 2)) / 9.80665;
+        this.accelerationVector = Math.sqrt(Math.pow(aX, 2) + Math.pow(aY, 2) + Math.pow(aZ, 2));
     }
 
     public long getInstanceTime() {

@@ -9,28 +9,22 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.util.Log;
-import android.util.Pair;
 
 import androidx.annotation.Nullable;
 
-import org.w3c.dom.ls.LSOutput;
-
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import unipi.protal.smartgreecealert.entities.MovementInstance;
 
 
 public class SensorService extends Service implements SensorEventListener {
     private static final String TAG = "SensorService";
-    private static final String ACCELEROMETER_RECEIVER = "accelerometer_gravity_receiver";
     private static final String EARTHQUAKE_RECEIVER = "Earthquake_receiver";
     private static final String FALL_RECEIVER = "Fall_receiver";
     private SensorManager sensorManager;
@@ -39,11 +33,13 @@ public class SensorService extends Service implements SensorEventListener {
     private long freeFallTime;
     private PowerConnectionReceiver powerConnectionReceiver;
     static boolean isPowerConnected;
-    // Earthquake vars
-    private List<MovementInstance> dataset;
-    private CountDownTimer timer;
-    private double sampleTime;
+    private List<MovementInstance> eqDataset;
     private long datasetDuration;
+    double aX;
+    double aY;
+    double aZ;
+
+    private List<MovementInstance> flDataset;
 
     public SensorService() {
     }
@@ -62,7 +58,8 @@ public class SensorService extends Service implements SensorEventListener {
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         // EarthQuake vars
-        dataset = new ArrayList<>();
+        eqDataset = new ArrayList<>();
+        flDataset = new ArrayList<>();
     }
 
     @Nullable
@@ -78,23 +75,23 @@ public class SensorService extends Service implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
 
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            /* Axis divided by Earth's Standard Gravity on surface 9.80665 m/s^2 */
+            aX = event.values[0] / 9.8665;
+            aY = event.values[1] / 9.8665;
+            aZ = event.values[2] / 9.8665;
 
-            double aX = event.values[0];
-            double aY = event.values[1];
-            double aZ = event.values[2];
-
-//            if(!isPowerConnected){
-//                // Call fall detection method - argument acceleration vector
-//                fallDetection(new MovementInstance(aX, aY, aZ).getAccelerationVector());
-//            }
-//            // Call earthquake detection method - argument movement object
-//            else earthquakeDetect(new MovementInstance(aX, aY, aZ));
-            //TODO: Disable below, enable above
-            earthquakeDetect(new MovementInstance(aX, aY, aZ));
+            if(!isPowerConnected){
+                // Call fall detection method - argument acceleration vector
+                fallDetection(new MovementInstance(aX, aY, aZ).getAccelerationVector());
+                //Alternate Method - argument MovementInstance object
+//                fallDetectionV2(new MovementInstance(aX, aY, aZ));
+            }
+            // Call earthquake detection method - argument movement object
+            else earthquakeDetect(new MovementInstance(aX, aY, aZ));
         }
     }
 
-    /* Finite State Machine Logic */
+    /* Finite State Machine Logic - Realtime Detection */
     private void fallDetection(double acceleration){
 
         switch (state){
@@ -102,26 +99,34 @@ public class SensorService extends Service implements SensorEventListener {
                 // Acceleration considered as free fall if it has value between 0.42G and 0.63G
                 if (acceleration > 0.42 && acceleration < 0.63){
                     freeFallTime = Instant.now().toEpochMilli();
-                    state = FallingState.FREE_FALL_DETECTED;
                     Log.println(Log.DEBUG, TAG, "FREE_FALL_DETECTED: " +freeFallTime);
+                    state = FallingState.FREE_FALL_DETECTION_STATE;
                 }
+                break;
 
-            case FREE_FALL_DETECTED:
-                // Detect ground impact: > 2.02g to 3.10g
-                if (acceleration > 2.02){
+            case FREE_FALL_DETECTION_STATE:
+                // Detect ground impact: > 2.02g ~ 3.10g
+                if (acceleration > 3.1){
                     long impactTime = Instant.now().toEpochMilli();
                     long duration =  impactTime - freeFallTime;
                     // Measure duration between free fall incident and impact
-                    if (duration > 400 && duration < 800){
-                        Log.println(Log.DEBUG, TAG, "IMPACT_DETECTED - Falling Duration: " +duration);
-                        state = FallingState.IMPACT_DETECTED;
+                    if (duration > 300 && duration < 800){
+                        Log.println(Log.DEBUG, TAG, "IMPACT_DETECTED - Falling Duration: "
+                                +duration +" ms");
+                        state = FallingState.IMPACT_DETECTION_STATE;
                     }
-                    else state = FallingState.INIT_STATE;
+                    else{
+                        Log.println(Log.DEBUG, TAG, "Resetting...");
+                        state = FallingState.INIT_STATE;
+                    }
                 }
-                else state = FallingState.INIT_STATE;
+                else if (Instant.now().isAfter(Instant.ofEpochMilli(freeFallTime).plusMillis(800))){
+                    Log.println(Log.DEBUG, TAG, "Resetting...");
+                    state = FallingState.INIT_STATE;
+                }
                 break;
 
-            case IMPACT_DETECTED:
+            case IMPACT_DETECTION_STATE:
                 // Detect Immobility (about 1G): If stand still for over 2.5 seconds
                 if (Instant.now().isAfter(Instant.ofEpochMilli(freeFallTime).plusMillis(1500)) &&
                         acceleration >= 0.90 && acceleration <= 1.10){
@@ -130,17 +135,87 @@ public class SensorService extends Service implements SensorEventListener {
                     // 1500ms since free fall detection and 2500ms standing still
                     if (duration > 4000){
                         Log.println(Log.DEBUG, TAG, "IMMOBILITY_DETECTED");
-                        state = FallingState.IMMOBILITY_DETECTED;
+                        state = FallingState.IMMOBILITY_DETECTION_STATE;
                     }
                 }
                 // if motion is detected go to Initial State
                 else if(Instant.now().isAfter(Instant.ofEpochMilli(freeFallTime).plusMillis(1500))){
-                    Log.println(Log.DEBUG, TAG, "Resetting State");
+                    Log.println(Log.DEBUG, TAG, "Resetting...");
                     state = FallingState.INIT_STATE;
                 }
                 break;
 
-            case IMMOBILITY_DETECTED:
+            case IMMOBILITY_DETECTION_STATE:
+                // Trigger Countdown Alarm
+                Intent intent = new Intent();
+                intent.setAction(FALL_RECEIVER);
+                sendBroadcast(intent);
+                Log.println(Log.DEBUG, TAG, "Alarm Triggered!!!");
+                state = FallingState.INIT_STATE;
+                break;
+        }
+    }
+
+    /* Finite State Machine Logic - Time Window Analyzing Detection */
+    public void fallDetectionV2(MovementInstance movementInstance){
+        double acceleration = movementInstance.getAccelerationVector();
+        switch (state){
+            case INIT_STATE:
+                // Acceleration considered as free fall if it has value between 0.42G and 0.63G
+                if (acceleration > 0.42 && acceleration < 0.63){
+                    state = FallingState.FREE_FALL_DETECTION_STATE;
+                }
+                break;
+            case FREE_FALL_DETECTION_STATE:
+                //Loading data to Dateset List for 4 seconds
+                flDataset.add(movementInstance);
+                if(Instant.now().toEpochMilli() - flDataset.get(0).getInstanceTime() > 4000){
+                    Log.println(Log.DEBUG, TAG, "FREE_FALL_DETECTED");
+                    state = FallingState.IMPACT_DETECTION_STATE;
+                }
+                break;
+            case IMPACT_DETECTION_STATE:
+                //Max is Impact maximum G
+                MovementInstance max =  flDataset.stream().max(Comparator
+                        .comparing(MovementInstance::getAccelerationVector))
+                        .orElseThrow(NoSuchElementException::new);
+                /* Min is free Fall minimum G: filter values before the Impact (max)
+                and find if there is free fall (min) prior to impact */
+                MovementInstance min = flDataset.stream()
+                        .filter(s -> s.getInstanceTime() < max.getInstanceTime())
+                        .min(Comparator.comparing(MovementInstance::getAccelerationVector))
+                        .orElseThrow(NoSuchElementException::new);
+                /* Duration should be under 0.8sec and Impact > 2.02G ~ 3.1G according to statistics
+                we calculate the duration between the lowest free fall G and the highest impact G */
+                long duration = max.getInstanceTime() - min.getInstanceTime();
+                if (duration > 300 && duration < 800 && max.getAccelerationVector() > 3.1){
+                    Log.println(Log.DEBUG, TAG, "IMPACT_DETECTED - Falling Duration: " +duration);
+                    boolean isMotionless = flDataset.stream()
+                            //Get values that are 1 sec after the impact (filter out any bounces)
+                            .filter(s -> s.getInstanceTime() > max.getInstanceTime() + 1000)
+                            //if the remaining values show motionless behaviour then true/next state
+                            .noneMatch(s -> s.getAccelerationVector() < 0.90 || s.getAccelerationVector() > 1.10);
+                    if (isMotionless){
+                        Log.println(Log.DEBUG, TAG, "IMMOBILITY_DETECTED");
+                        state = FallingState.IMMOBILITY_DETECTION_STATE;
+                    }
+                    else {
+                        //Clear fall dataset list and reset states if motion is detected
+                        flDataset.clear();
+                        //Reset
+                        Log.println(Log.DEBUG, TAG, "Resetting...");
+                        state = FallingState.INIT_STATE;
+                    }
+                }
+                else {
+                    //Clear fall dataset list and reset states if duration or max G is incorrect.
+                    flDataset.clear();
+                    //Reset
+                    Log.println(Log.DEBUG, TAG, "Resetting...");
+                    state = FallingState.INIT_STATE;
+                }
+                break;
+            case IMMOBILITY_DETECTION_STATE:
                 // Trigger Countdown Alarm
                 Intent intent = new Intent();
                 intent.setAction(FALL_RECEIVER);
@@ -154,13 +229,13 @@ public class SensorService extends Service implements SensorEventListener {
     public void earthquakeDetect(MovementInstance movementInstance){
         if (movementInstance.getAccelerationVector() < 0.99
                 || movementInstance.getAccelerationVector() > 1.01){
-            dataset.add(movementInstance);
+            eqDataset.add(movementInstance);
             Log.println(Log.DEBUG, TAG, "Movement Detection! Time: " +movementInstance.getInstanceTime());
         }
         //if time window is 5 seconds
-        if (!dataset.isEmpty() && Instant.now().isAfter(Instant.ofEpochMilli(dataset.get(0).getInstanceTime()).plusSeconds(5))){
-            if (dataset.size() > 5){
-                datasetDuration = dataset.get(dataset.size()-1).getInstanceTime() - dataset.get(0).getInstanceTime();
+        if (!eqDataset.isEmpty() && Instant.now().isAfter(Instant.ofEpochMilli(eqDataset.get(0).getInstanceTime()).plusSeconds(5))){
+            if (eqDataset.size() > 5){
+                datasetDuration = eqDataset.get(eqDataset.size()-1).getInstanceTime() - eqDataset.get(0).getInstanceTime();
                 //Both IQR and ZCR must return True to trigger the earthquake report
                 if (calculateIQR() && calculateZCR()){
                     Log.println(Log.DEBUG, TAG, "Earthquake Detected!!!");
@@ -169,7 +244,7 @@ public class SensorService extends Service implements SensorEventListener {
                     sendBroadcast(intent);
                 }
             }
-            dataset.clear();
+            eqDataset.clear();
             datasetDuration = 0;
         }
     }
@@ -178,17 +253,17 @@ public class SensorService extends Service implements SensorEventListener {
     private boolean calculateIQR(){
         //Sort Sample List
         Comparator<MovementInstance> comparator = Comparator.comparing(MovementInstance::getAccelerationVector);
-        dataset.sort(comparator);
+        eqDataset.sort(comparator);
         //Find median index of whole dataset
-        int median_idx = getMedian(0, dataset.size());
+        int median_idx = getMedian(0, eqDataset.size());
         //Find median of the first half
-        double q1 = dataset.get(getMedian(0,median_idx)).getAccelerationVector();
+        double q1 = eqDataset.get(getMedian(0,median_idx)).getAccelerationVector();
         //Find median of the second half
-        double q3 = dataset.get(getMedian(median_idx + 1, dataset.size())).getAccelerationVector();
+        double q3 = eqDataset.get(getMedian(median_idx + 1, eqDataset.size())).getAccelerationVector();
         //IQR
         double iqr = q3-q1;
 
-        Log.println(Log.DEBUG, TAG, "IQR -> Dataset Size: " +dataset.size()
+        Log.println(Log.DEBUG, TAG, "IQR -> Dataset Size: " + eqDataset.size()
                 +", Median: " +median_idx +", Q1: " +q1 +", Q3: " +q3 +", IQR: " +iqr);
         //IQR seems to detect consistent and acceptable for earthquake signal in range (0.03 - 0.05)
         return iqr> 0.0025 && iqr < 0.035;
@@ -204,14 +279,14 @@ public class SensorService extends Service implements SensorEventListener {
     //Zero Crossing Rate
     private boolean calculateZCR(){
         int numCrossingsX = 0, numCrossingsY = 0, numCrossingsZ = 0;
-        for (int n = 1; n < dataset.size(); n++){
-            if ((dataset.get(n).getX() * dataset.get(n-1).getX()) < 0){
+        for (int n = 1; n < eqDataset.size(); n++){
+            if ((eqDataset.get(n).getX() * eqDataset.get(n-1).getX()) < 0){
                 numCrossingsX++;
             }
-            if ((dataset.get(n).getY() * dataset.get(n-1).getY()) < 0){
+            if ((eqDataset.get(n).getY() * eqDataset.get(n-1).getY()) < 0){
                 numCrossingsY++;
             }
-            if ((dataset.get(n).getZ() * dataset.get(n-1).getZ()) < 0){
+            if ((eqDataset.get(n).getZ() * eqDataset.get(n-1).getZ()) < 0){
                 numCrossingsZ++;
             }
         }
@@ -254,9 +329,9 @@ public class SensorService extends Service implements SensorEventListener {
 // Fall Detection Enumerator
 enum FallingState {
     INIT_STATE,
-    FREE_FALL_DETECTED,
-    IMPACT_DETECTED,
-    IMMOBILITY_DETECTED
+    FREE_FALL_DETECTION_STATE,
+    IMPACT_DETECTION_STATE,
+    IMMOBILITY_DETECTION_STATE
 }
 
 class PowerConnectionReceiver extends BroadcastReceiver{

@@ -96,19 +96,15 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private StorageReference storageReference;
     private CountDownTimer timer;
     private Report lastReport;
-    AtomicInteger earthquakeIncidents;
-    AtomicBoolean isAlertMessageSent;
-    AtomicBoolean isEarthquakeReportSent;
+    private AtomicInteger earthquakeIncidents;
+    private AtomicBoolean isAlertMessageSent;
+    private AtomicBoolean isEarthquakeReportSent;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityAlertBinding.inflate(getLayoutInflater());
-        View view = binding.getRoot();
-        setContentView(view);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
         firebaseAuth = FirebaseAuth.getInstance();
         user = firebaseAuth.getCurrentUser();
         firebaseDatabase = FirebaseDatabase.getInstance();
@@ -126,6 +122,12 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         intentFilter.addAction(FALL_RECEIVER);
         intentFilter.addAction(EARTHQUAKE_RECEIVER);
         registerReceiver(accelerometerReceiver, intentFilter);
+        View view = binding.getRoot();
+        setContentView(view);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
         // startService(sensorServiceIntent);
         binding.abortButton.setOnClickListener(v -> {
             cancelAlarm(); // countdown stops
