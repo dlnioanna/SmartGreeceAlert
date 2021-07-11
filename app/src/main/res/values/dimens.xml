@@ -11,8 +11,12 @@
     <dimen name="extra_large">32dp</dimen>
     <dimen name="extra_extra_large">64dp</dimen>
     <dimen name="fab_margin">40dp</dimen>
+    <dimen name="progressBar_dimension">60dp</dimen>
     <dimen name="card_corner_radius">4dp</dimen>
     <dimen name="card_content_padding">10dp</dimen>
     <dimen name="card_text_size_name">18sp</dimen>
     <dimen name="card_text_size_telephone">16sp</dimen>
+    <dimen name="timer_progress_bar_dimension">100dp</dimen>
+    <dimen name="timer_text_dimension">35dp</dimen>
+    <dimen name="timer_text_size">16sp</dimen>
 </resources>

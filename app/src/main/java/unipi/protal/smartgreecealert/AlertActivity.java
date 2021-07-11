@@ -6,6 +6,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import android.animation.ValueAnimator;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,6 +15,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -77,6 +80,8 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private static final String EARTHQUAKE_RECEIVER = "Earthquake_receiver";
     private static final String REPORTS = "reports";
     private static final String EARTHQUAKE_INCIDENTS = "earthquake_incidents";
+    public static final String REPORT_TYPE = "type";
+    public static final String EARTHQUAKE_REPORT = "earthquake_incidents";
     public static final int REQUEST_LOCATION = 1000;
     public static final int REQUEST_PERMISSIONS = 1100;
     public static final int TAKE_PICTURE = 2000;
@@ -248,7 +253,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
     // stores reports on realtime database and informs the user with a Toast message if the upload is successful or not
     private void saveReport(ReportType reportType, Long time, Uri... uri) {
-        DatabaseReference dbRef = firebaseDatabase.getReference().child(REPORTS);
+        DatabaseReference dbref = firebaseDatabase.getReference().child(REPORTS);
         Report report;
         switch (reportType){
             case FIRE_REPORT:
@@ -266,7 +271,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             default:
                 throw new IllegalStateException("Unexpected value: " + reportType);
         }
-        dbRef.child(user.getUid()).child(time.toString()).setValue(report)
+        dbref.child(user.getUid()).child(time.toString()).setValue(report)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -334,7 +339,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     }
 
     /*
-   Method used by to check if the gps is enabled, if access to location is permitted
+   Method used by to check if the gps is enabled, if access to location is permited
     */
     private void startGps() {
         // if gps is not enabled show message that asks to enable it
@@ -351,7 +356,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         }
     }
 
-    // If GPS is not enabled shows dialog that informs user to enable it from phone settings
+    // if gps is not enabled shows dialog that informs user to enable it from phone settings
     public void showGPSDisabledDialog() {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
         alertDialog.setTitle(getString(R.string.gps_title));
@@ -382,17 +387,23 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(FALL_RECEIVER)) {
                 //TODO: CountDown to 30000 ms
+                binding.timerProgressBar.setMax(10);
                 timer = new CountDownTimer(10000, 1000) {
                     @Override
-                    public void onTick(long l) {
-                        binding.text.setText(String.valueOf((int) l / 1000));
+                    public void onTick(long leftTimeInMilliseconds) {
+                        long seconds = leftTimeInMilliseconds / 1000;
                         player.start();
+                        binding.timerText.setVisibility(View.VISIBLE);
+                        binding.timerProgressBar.setVisibility(View.VISIBLE);
                         binding.abortButton.setVisibility(View.VISIBLE);
+                        binding.timerText.setText(String.valueOf((long) seconds));
+                        binding.timerProgressBar.setProgress((int)seconds,true);
                     }
 
                     @Override
                     public void onFinish() {
                         cancelAlarm();
+                        binding.timerText.setVisibility(View.GONE);
                         binding.text.setText("finished");
                         //Get epochTime of the incident
                         long incidentTime = Instant.now().toEpochMilli();
@@ -449,6 +460,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                         e.printStackTrace();
                     }
                     if(currentLocation != null){
+                        //Call sendReportMessageHandler back in UIThread
                         //Save report to Firebase
                         saveReport(ReportType.FALL_REPORT, timeOfIncident);
                         //Send SMS
@@ -542,6 +554,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     /* Called when user cancels the countdown and the message is not sent
     or if the message is already sent, sends a cancellation message */
     private void cancelAlarm() {
+        binding.timerProgressBar.setVisibility(View.GONE);
         if(!isAlertMessageSent.get()){
             player.stop();
             try {
@@ -596,6 +609,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     // save data to prevent losing them on screen rotation when app is running but not shown
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
+        // todo: save timer state on screen rotation
         outState.putParcelable("f_user", user);
         outState.putParcelable("current_location", currentLocation);
         super.onSaveInstanceState(outState);
@@ -605,6 +619,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+        // todo: restore timer state on screen rotation
         user = savedInstanceState.getParcelable("f_user");
         currentLocation = savedInstanceState.getParcelable("current_location");
     }
@@ -612,6 +627,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     // Sends SMS to contacts provided by the user in shared preferences
     private void sendTextMessage(ReportType reportType){
         List<EmergencyContact> emergencyContactList = ContactsUtils.getSavedContacts(this);
+        //TODO: Connect contacts with shared preferences
 //        String phoneNumber = "6932474176";
 //        String phoneNumber = "6947679760";
         String message = "SOS";

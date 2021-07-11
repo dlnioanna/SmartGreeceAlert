@@ -44,7 +44,13 @@
         <activity
             android:name=".AlertActivity"
             android:label="@string/title_activity" />
-        <activity android:name=".StatisticsActivity" />
+        <activity android:name=".StatisticsActivity"
+            android:label="@string/statistics_setting"
+            android:parentActivityName=".AlertActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".AlertActivity" />
+        </activity>
         <activity
             android:name=".settings.SettingsActivity"
             android:label="@string/language_setting"
