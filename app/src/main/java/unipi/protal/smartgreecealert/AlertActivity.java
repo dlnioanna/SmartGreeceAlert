@@ -12,6 +12,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.location.LocationListener;
@@ -109,6 +110,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         View view = binding.getRoot();
         setContentView(view);
         startingLocale = SharedPrefsUtils.getCurrentLanguage(this);
+        SharedPrefsUtils.updateLanguage(this, getResources(), SharedPrefsUtils.getCurrentLanguage(this));
         firebaseAuth = FirebaseAuth.getInstance();
         user = firebaseAuth.getCurrentUser();
         firebaseDatabase = FirebaseDatabase.getInstance();
@@ -584,7 +586,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     protected void onResume() {
         super.onResume();
-        SharedPrefsUtils.updateLanguage(this, getResources(), SharedPrefsUtils.getCurrentLanguage(this));
         setTitle(getString(R.string.title_activity));
         if(!startingLocale.equals(SharedPrefsUtils.getCurrentLanguage(this))){
             Intent intent = getIntent();
@@ -615,6 +616,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         // todo: save timer state on screen rotation
+        Log.e("onSaveInstanceState","onSaveInstanceState");
         outState.putParcelable("f_user", user);
         outState.putParcelable("current_location", currentLocation);
         super.onSaveInstanceState(outState);
@@ -624,9 +626,17 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+        Log.e("onRestoreInstanceState","onRestoreInstanceState");
         // todo: restore timer state on screen rotation
+
         user = savedInstanceState.getParcelable("f_user");
         currentLocation = savedInstanceState.getParcelable("current_location");
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig){
+        super.onConfigurationChanged(newConfig);
+        SharedPrefsUtils.updateLanguage(this, getResources(), SharedPrefsUtils.getCurrentLanguage(this));
     }
 
     // Sends SMS to contacts provided by the user in shared preferences

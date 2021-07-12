@@ -42,8 +42,10 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".AlertActivity"/>
+            android:name=".AlertActivity"
+            android:configChanges="locale"/>
         <activity android:name=".StatisticsActivity"
+            android:configChanges="locale"
             android:parentActivityName=".AlertActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -51,6 +53,7 @@
         </activity>
         <activity
             android:name=".settings.SettingsActivity"
+            android:configChanges="locale"
             android:parentActivityName=".AlertActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -58,6 +61,7 @@
         </activity>
         <activity
             android:name=".ContactsActivity"
+            android:configChanges="locale"
             android:parentActivityName=".AlertActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

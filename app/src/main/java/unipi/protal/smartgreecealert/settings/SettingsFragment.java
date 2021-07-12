@@ -27,44 +27,44 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         String localeFR = getString(R.string.locale_french);
         Resources res = getResources();
         greekPreference = this.findPreference(getString(R.string.preferences_greek_key));
-        greekPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+        greekPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
-            public boolean onPreferenceChange(Preference preference,
-                                              Object newValue) {
-                greekPreference.setChecked(true);
-                englishPreference.setChecked(false);
-                frenchPreference.setChecked(false);
-                SharedPrefsUtils.updateLanguage(getContext(), res, localeGR);
-                restartActivity();
-                return true;
+            public boolean onPreferenceClick(Preference preference) {
+                    greekPreference.setChecked(true);
+                    englishPreference.setChecked(false);
+                    frenchPreference.setChecked(false);
+                    SharedPrefsUtils.updateLanguage(getContext(), res, localeGR);
+                    restartActivity();
+                    return true;
             }
         });
         englishPreference = this.findPreference(getString(R.string.preferences_english_key));
-        englishPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+        englishPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
-            public boolean onPreferenceChange(Preference preference,
-                                              Object newValue) {
-                greekPreference.setChecked(false);
-                englishPreference.setChecked(true);
-                frenchPreference.setChecked(false);
-                SharedPrefsUtils.updateLanguage(getContext(), res, localeEN);
-                restartActivity();
-                return true;
+            public boolean onPreferenceClick(Preference preference) {
+
+                    greekPreference.setChecked(false);
+                    englishPreference.setChecked(true);
+                    frenchPreference.setChecked(false);
+                    SharedPrefsUtils.updateLanguage(getContext(), res, localeEN);
+                    restartActivity();
+                    return true;
             }
         });
+
         frenchPreference = this.findPreference(getString(R.string.preferences_french_key));
-        frenchPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+        frenchPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
-            public boolean onPreferenceChange(Preference preference,
-                                              Object newValue) {
-                greekPreference.setChecked(false);
-                englishPreference.setChecked(false);
-                frenchPreference.setChecked(true);
-                SharedPrefsUtils.updateLanguage(getContext(), res, localeFR);
-                restartActivity();
-                return true;
+            public boolean onPreferenceClick(Preference preference) {
+                    greekPreference.setChecked(false);
+                    englishPreference.setChecked(false);
+                    frenchPreference.setChecked(true);
+                    SharedPrefsUtils.updateLanguage(getContext(), res, localeFR);
+                    restartActivity();
+                    return true;
             }
         });
+
     }
 
 
