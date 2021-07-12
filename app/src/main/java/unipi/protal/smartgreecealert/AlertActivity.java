@@ -565,6 +565,8 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private void cancelAlarm() {
         binding.timerProgressBar.setVisibility(View.GONE);
         binding.timerText.setVisibility(View.GONE);
+        initializeTimer(FALL_COUNTDOWN);
+        TIMER_STARTED=false;
         if(!isAlertMessageSent.get()){
             player.stop();
             try {
