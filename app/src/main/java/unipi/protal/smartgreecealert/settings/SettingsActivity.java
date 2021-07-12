@@ -6,6 +6,7 @@ import androidx.preference.SwitchPreference;
 import androidx.preference.SwitchPreferenceCompat;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -58,5 +59,11 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setTitle(getString(R.string.language_setting));
     }
 }

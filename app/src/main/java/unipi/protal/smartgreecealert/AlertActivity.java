@@ -99,12 +99,16 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private AtomicInteger earthquakeIncidents;
     private AtomicBoolean isAlertMessageSent;
     private AtomicBoolean isEarthquakeReportSent;
+    private String startingLocale;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityAlertBinding.inflate(getLayoutInflater());
+        View view = binding.getRoot();
+        setContentView(view);
+        startingLocale = SharedPrefsUtils.getCurrentLanguage(this);
         firebaseAuth = FirebaseAuth.getInstance();
         user = firebaseAuth.getCurrentUser();
         firebaseDatabase = FirebaseDatabase.getInstance();
@@ -122,8 +126,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         intentFilter.addAction(FALL_RECEIVER);
         intentFilter.addAction(EARTHQUAKE_RECEIVER);
         registerReceiver(accelerometerReceiver, intentFilter);
-        View view = binding.getRoot();
-        setContentView(view);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
@@ -578,9 +580,17 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         super.onPause();
     }
 
+    // if locale has changed restart the activity for chage to show
     @Override
     protected void onResume() {
         super.onResume();
+        SharedPrefsUtils.updateLanguage(this, getResources(), SharedPrefsUtils.getCurrentLanguage(this));
+        setTitle(getString(R.string.title_activity));
+        if(!startingLocale.equals(SharedPrefsUtils.getCurrentLanguage(this))){
+            Intent intent = getIntent();
+            finish();
+            startActivity(intent);
+        }
     }
 
     @Override

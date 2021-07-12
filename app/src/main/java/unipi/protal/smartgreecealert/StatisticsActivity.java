@@ -118,4 +118,10 @@ public class StatisticsActivity extends AppCompatActivity {
         binding.pieChart.invalidate();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setTitle(getString(R.string.statistics_setting));
+    }
+
 }
