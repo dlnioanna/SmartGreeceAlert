@@ -33,10 +33,10 @@ public class StatisticsActivity extends AppCompatActivity {
     private ActivityStatisticsBinding binding;
     private FirebaseDatabase firebaseDatabase;
     private DatabaseReference databaseReference;
-    private ArrayList<Report> reportFallList = new ArrayList<>();
-    private ArrayList<Report> reportEarthquakeList = new ArrayList<>();
-    private ArrayList<Report> reportFireList = new ArrayList<>();
-    private ArrayList<Report> reportFalseAlarmList = new ArrayList<>();
+    private ArrayList<Report> reportFallList;
+    private ArrayList<Report> reportEarthquakeList;
+    private ArrayList<Report> reportFireList;
+    private ArrayList<Report> reportFalseAlarmList;
     private FirebaseUser user;
     private FirebaseAuth firebaseAuth;
 
@@ -49,6 +49,10 @@ public class StatisticsActivity extends AppCompatActivity {
         firebaseAuth = FirebaseAuth.getInstance();
         user = firebaseAuth.getCurrentUser();
         firebaseDatabase = FirebaseDatabase.getInstance();
+        reportFallList = new ArrayList<>();
+        reportEarthquakeList = new ArrayList<>();
+        reportFireList = new ArrayList<>();
+        reportFalseAlarmList = new ArrayList<>();
         databaseReference = firebaseDatabase.getReference(REPORTS).child(user.getUid());
         databaseReference.addListenerForSingleValueEvent(
                 new ValueEventListener() {
@@ -68,7 +72,7 @@ public class StatisticsActivity extends AppCompatActivity {
                         }
                         Log.e(" report list 1",reportFallList.size()+" reportFallList");
                         Log.e(" report list 1",reportFireList.size()+" reportFireList");
-                        Log.e(" report list 1", reportEarthquakeList.size()+" reportErathquakeList");
+                        Log.e(" report list 1", reportEarthquakeList.size()+" reportEarthquakeList");
                         Log.e(" report list 1",reportFalseAlarmList.size()+" reportFalseAlarmList");
                         setUpPieChart();
                     }
@@ -99,7 +103,7 @@ public class StatisticsActivity extends AppCompatActivity {
         }
         Log.e(" report list 2",reportFallList.size()+" reportFallList");
         Log.e(" report list 2",reportFireList.size()+" reportFireList");
-        Log.e(" report list 2", reportEarthquakeList.size()+" reportErathquakeList");
+        Log.e(" report list 2", reportEarthquakeList.size()+" reportEarthquakeList");
         Log.e(" report list 2",reportFalseAlarmList.size()+" reportFalseAlarmList");
         binding.pieChart.animateXY(2000, 2000);
         PieDataSet pieDataSet = new PieDataSet(pieEntries,null);

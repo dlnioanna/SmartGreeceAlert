@@ -1,5 +1,7 @@
 package unipi.protal.smartgreecealert.services;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -13,6 +15,7 @@ import android.os.IBinder;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -20,6 +23,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import unipi.protal.smartgreecealert.R;
 import unipi.protal.smartgreecealert.entities.MovementInstance;
 
 
@@ -56,6 +60,10 @@ public class SensorService extends Service implements SensorEventListener {
         // EarthQuake vars
         eqDataset = new ArrayList<>();
         flDataset = new ArrayList<>();
+
+        PowerConnectionReceiver notification = new PowerConnectionReceiver();
+        notification.buildNotification(this,"765", "myChannel",
+                "Smart Greece Alert", null);
     }
 
     @Nullable
@@ -335,26 +343,33 @@ class PowerConnectionReceiver extends BroadcastReceiver{
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals(Intent.ACTION_POWER_CONNECTED)){
-//            buildNotification(context,"765", "myChannel", "Power", "Charging!");
             SensorService.isPowerConnected = true;
+            buildNotification(context,"765", "myChannel", "Earthquake Detection Enabled", null);
         }
         else if (intent.getAction().equals(Intent.ACTION_POWER_DISCONNECTED)){
             SensorService.isPowerConnected = false;
+            buildNotification(context,"765", "myChannel", "Fall Detection Enabled", null);
         }
     }
 
-//    void buildNotification(Context context, String channelId, String channelName, String title, String message){
-//        NotificationChannel channel = new NotificationChannel(channelId, channelName,
-//                NotificationManager.IMPORTANCE_DEFAULT);
-//        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-//        manager.createNotificationChannel(channel);
-//
-//        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
-//        builder.setContentTitle(title)
-//                .setContentText(message)
-//                .setSmallIcon(R.drawable.ic_launcher_foreground)
-//                .setAutoCancel(true);
-//
-//        manager.notify(1, builder.build());
-//    }
+    public void buildNotification(Context context, String channelId, String channelName, String title, String message){
+        NotificationChannel channel = new NotificationChannel(channelId, channelName,
+                NotificationManager.IMPORTANCE_LOW);
+        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        manager.createNotificationChannel(channel);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
+
+        if(SensorService.isPowerConnected){
+            builder.setContentTitle(title)
+                    .setSmallIcon(R.drawable.ic_earthquake)
+                    .setAutoCancel(true);
+        }
+        else{
+            builder.setContentTitle(title)
+                    .setSmallIcon(R.drawable.ic_falling_man)
+                    .setAutoCancel(true);
+        }
+        manager.notify(1, builder.build());
+    }
 }

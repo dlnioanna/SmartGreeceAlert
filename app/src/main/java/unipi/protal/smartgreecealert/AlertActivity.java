@@ -333,9 +333,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         }
     }
 
-    /*
-   Method used by to check if the gps is enabled, if access to location is permited
-    */
+    /* Method used by to check if the gps is enabled, if access to location is permitted */
     private void startGps() {
         // if gps is not enabled show message that asks to enable it
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
