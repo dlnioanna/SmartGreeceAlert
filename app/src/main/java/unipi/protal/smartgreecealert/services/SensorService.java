@@ -41,6 +41,8 @@ public class SensorService extends Service implements SensorEventListener {
     private List<MovementInstance> eqDataset;
     private List<MovementInstance> flDataset;
 
+    private NotificationManager notificationManager;
+
     public SensorService() {
     }
 
@@ -60,10 +62,20 @@ public class SensorService extends Service implements SensorEventListener {
         // EarthQuake vars
         eqDataset = new ArrayList<>();
         flDataset = new ArrayList<>();
-
-        PowerConnectionReceiver notification = new PowerConnectionReceiver();
-        notification.buildNotification(this,"765", "myChannel",
-                "Smart Greece Alert", null);
+        //Notification and icon
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "765");
+        if(SensorService.isPowerConnected){
+            builder.setContentTitle("Earthquake Detection Enabled")
+                    .setSmallIcon(R.drawable.ic_earthquake)
+                    .setAutoCancel(true);
+        }
+        else{
+            builder.setContentTitle("Fall Detection Enabled")
+                    .setSmallIcon(R.drawable.ic_falling_man)
+                    .setAutoCancel(true);
+        }
+        notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(1, builder.build());
     }
 
     @Nullable
@@ -326,6 +338,7 @@ public class SensorService extends Service implements SensorEventListener {
     public void onDestroy() {
         sensorManager.unregisterListener(SensorService.this, accelerometerSensor);
         unregisterReceiver(powerConnectionReceiver);
+        notificationManager.cancel(1);
         super.onDestroy();
     }
 }
