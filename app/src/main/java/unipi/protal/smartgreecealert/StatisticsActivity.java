@@ -110,7 +110,7 @@ public class StatisticsActivity extends AppCompatActivity {
         description.setText(getString(R.string.statistics_user));
         description.setTextSize(20);
         binding.pieChart.setDrawEntryLabels(true);
-        binding.pieChart.setUsePercentValues(true);
+        binding.pieChart.setUsePercentValues(false);
         binding.pieChart.setDescription(description);
         binding.pieChart.setEntryLabelColor(getColor(R.color.white));
         binding.pieChart.setEntryLabelTextSize(16);
