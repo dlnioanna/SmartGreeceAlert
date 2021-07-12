@@ -40,7 +40,6 @@ public class SensorService extends Service implements SensorEventListener {
     private long datasetDuration;
     private List<MovementInstance> eqDataset;
     private List<MovementInstance> flDataset;
-
     private NotificationManager notificationManager;
 
     public SensorService() {
