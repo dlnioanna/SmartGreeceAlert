@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".AlertActivity">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+        <LinearLayout
+            android:id="@+id/fragment_map"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <fragment
+                android:id="@+id/map"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context=".AlertActivity"/>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/alert_info"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context=".AlertActivity">
+                <TextView
+                    android:id="@+id/text"
+                    style="@style/AlertInfoStyle"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>
+
+                <TextView
+                    android:id="@+id/timer_text"
+                    style="@style/TextTimesStyle"
+                    app:layout_constraintBottom_toBottomOf="@+id/timer_progress_bar"
+                    app:layout_constraintEnd_toEndOf="@+id/timer_progress_bar"
+                    app:layout_constraintStart_toStartOf="@+id/timer_progress_bar"
+                    app:layout_constraintTop_toBottomOf="@+id/text" />
+                <ProgressBar
+                    android:id="@+id/timer_progress_bar"
+                    style="@style/CircularDeterminateProgressBar"
+                    android:visibility="gone"
+                    app:layout_constraintTop_toBottomOf="@+id/text"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                   />
+                <android.widget.Button
+                    android:id="@+id/abort_button"
+                    style="@style/AbortButtonStyle"
+                    app:layout_constraintBottom_toTopOf="@+id/fire_button"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/timer_progress_bar" />
+                <android.widget.Button
+                    android:id="@+id/fire_button"
+                    style="@style/FireButtonStyle"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+
+
+</layout>

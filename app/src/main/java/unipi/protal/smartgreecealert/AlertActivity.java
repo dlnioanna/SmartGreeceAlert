@@ -101,6 +101,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private AtomicBoolean isAlertMessageSent;
     private AtomicBoolean isEarthquakeReportSent;
     private String startingLocale;
+    private long seconds ;
 
 
     @Override
@@ -388,7 +389,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                 timer = new CountDownTimer(10000, 1000) {
                     @Override
                     public void onTick(long leftTimeInMilliseconds) {
-                        long seconds = leftTimeInMilliseconds / 1000;
+                        seconds = leftTimeInMilliseconds / 1000;
                         player.start();
                         binding.timerText.setVisibility(View.VISIBLE);
                         binding.timerProgressBar.setVisibility(View.VISIBLE);
@@ -615,6 +616,10 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         // todo: save timer state on screen rotation
         Log.e("onSaveInstanceState","onSaveInstanceState");
+        outState.putInt("timeProgressBar_visibility",binding.timerProgressBar.getVisibility());
+        outState.putInt("timerText_visibility",binding.timerText.getVisibility());
+        outState.putInt("abort_button_visibility",binding.abortButton.getVisibility());
+        outState.putLong("timer_seconds", seconds);
         outState.putParcelable("f_user", user);
         outState.putParcelable("current_location", currentLocation);
         super.onSaveInstanceState(outState);
@@ -626,9 +631,16 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         super.onRestoreInstanceState(savedInstanceState);
         Log.e("onRestoreInstanceState","onRestoreInstanceState");
         // todo: restore timer state on screen rotation
-
+        binding.timerProgressBar.setMax(10);
+        binding.timerProgressBar.setVisibility(savedInstanceState.getInt("timeProgressBar_visibility"));
+        binding.timerText.setVisibility(savedInstanceState.getInt("timerText_visibility"));
+        binding.abortButton.setVisibility(savedInstanceState.getInt("abort_button_visibility"));
+        binding.timerText.setText(String.valueOf((long) savedInstanceState.getLong("timer_seconds") ));
+        binding.timerProgressBar.setProgress((int) savedInstanceState.getLong("timer_seconds"),true);
         user = savedInstanceState.getParcelable("f_user");
         currentLocation = savedInstanceState.getParcelable("current_location");
+        timer.onTick(savedInstanceState.getLong("timer_seconds") );
+
     }
 
     @Override
