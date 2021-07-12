@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import unipi.protal.smartgreecealert.databinding.ActivityFirebaseUiBinding;
+import unipi.protal.smartgreecealert.utils.SharedPrefsUtils;
 
 public class FirebaseUIActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 123;
@@ -102,6 +103,7 @@ public class FirebaseUIActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
        firebaseAuth.addAuthStateListener(authStateListener);
+       SharedPrefsUtils.updateLanguage(this, getResources(), SharedPrefsUtils.getCurrentLanguage(this));
     }
 
     /**

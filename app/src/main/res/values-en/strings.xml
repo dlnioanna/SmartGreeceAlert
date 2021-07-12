@@ -10,9 +10,8 @@
     <string name="gps_yes">YES</string>
     <string name="gps_no">NO</string>
     <string name="statistics_setting">Statistics</string>
-    <string name="maps_api_key">AIzaSyCaQaIZGhLJcIFWbP-ouDszFh1IobgEsQA</string>
     <!--  Language Preferences  -->
-    <string name="preferences_tittle">Επιλογή γλώσσας</string>
+    <string name="preferences_tittle">Choose language</string>
 <!--    <string name="preferences_greek_key">greek</string>-->
     <string name="preferences_greek">Greek</string>
 <!--    <string name="preferences_english_key">english</string>-->

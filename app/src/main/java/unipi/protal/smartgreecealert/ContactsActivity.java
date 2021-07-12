@@ -261,4 +261,10 @@ method that creates an alert dialog for user to edit an existing contact
         });
         builder.show();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setTitle(getString(R.string.add_contacts));
+    }
 }
