@@ -36,21 +36,22 @@
                 tools:context=".AlertActivity">
                 <TextView
                     android:id="@+id/text"
-                    style="@style/AlertInfoStyle"
+                    style="@style/AlertInfoStyle_land"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"/>
 
                 <TextView
                     android:id="@+id/timer_text"
-                    style="@style/TextTimesStyle"
+                    style="@style/TextTimesStyle_land"
+                    android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="@+id/timer_progress_bar"
                     app:layout_constraintEnd_toEndOf="@+id/timer_progress_bar"
                     app:layout_constraintStart_toStartOf="@+id/timer_progress_bar"
                     app:layout_constraintTop_toBottomOf="@+id/text" />
                 <ProgressBar
                     android:id="@+id/timer_progress_bar"
-                    style="@style/CircularDeterminateProgressBar"
+                    style="@style/CircularDeterminateProgressBar_land"
                     android:visibility="gone"
                     app:layout_constraintTop_toBottomOf="@+id/text"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -58,14 +59,14 @@
                    />
                 <android.widget.Button
                     android:id="@+id/abort_button"
-                    style="@style/AbortButtonStyle"
+                    style="@style/AbortButtonStyle_land"
                     app:layout_constraintBottom_toTopOf="@+id/fire_button"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/timer_progress_bar" />
                 <android.widget.Button
                     android:id="@+id/fire_button"
-                    style="@style/FireButtonStyle"
+                    style="@style/FireButtonStyle_land"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent" />

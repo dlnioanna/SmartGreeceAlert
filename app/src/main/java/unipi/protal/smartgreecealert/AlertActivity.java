@@ -81,6 +81,10 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     public static final int REQUEST_LOCATION = 1000;
     public static final int REQUEST_PERMISSIONS = 1100;
     public static final int TAKE_PICTURE = 2000;
+    public static final int MILLIS = 1000;
+    private static boolean TIMER_STARTED = false;
+    //TODO: CountDown to 30sec
+    public static final int FALL_COUNTDOWN = 10;
     private ActivityAlertBinding binding;
     private boolean mapReady = false;
     private GoogleMap mMap;
@@ -159,6 +163,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             }
         }
         startGps();
+        initializeTimer(FALL_COUNTDOWN);
     }
 
     // create menu on the top right corner
@@ -384,34 +389,8 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(FALL_RECEIVER)) {
-                //TODO: CountDown to 30000 ms
-                binding.timerProgressBar.setMax(10);
-                timer = new CountDownTimer(10000, 1000) {
-                    @Override
-                    public void onTick(long leftTimeInMilliseconds) {
-                        seconds = leftTimeInMilliseconds / 1000;
-                        player.start();
-                        binding.timerText.setVisibility(View.VISIBLE);
-                        binding.timerProgressBar.setVisibility(View.VISIBLE);
-                        binding.abortButton.setVisibility(View.VISIBLE);
-                        binding.timerText.setText(String.valueOf((long) seconds));
-                        binding.timerProgressBar.setProgress((int)seconds,true);
-                    }
-
-                    @Override
-                    public void onFinish() {
-                        cancelAlarm();
-                        binding.timerText.setVisibility(View.GONE);
-                        binding.text.setText("finished");
-                        //Get epochTime of the incident
-                        long incidentTime = Instant.now().toEpochMilli();
-                        //Create a report object
-                        lastReport = new Report(ReportType.FALL_REPORT, incidentTime);
-                        //Send SMS and Save report to Firebase Async
-                        sendFallReportAsync(incidentTime);
-                    }
-                };
                 timer.start();
+                TIMER_STARTED=true;
             }
             if (intent.getAction().equals(EARTHQUAKE_RECEIVER)){
                 Toast.makeText(context.getApplicationContext(),
@@ -434,6 +413,38 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                 }
             }
         }
+    }
+
+    private void initializeTimer(int sec){
+        binding.timerProgressBar.setMax(FALL_COUNTDOWN);
+        timer = new CountDownTimer(sec*MILLIS, MILLIS) {
+            @Override
+            public void onTick(long leftTimeInMilliseconds) {
+                seconds = leftTimeInMilliseconds / MILLIS;
+                player.start();
+                binding.timerText.setVisibility(View.VISIBLE);
+                binding.timerProgressBar.setVisibility(View.VISIBLE);
+                binding.abortButton.setVisibility(View.VISIBLE);
+                binding.timerText.setText(String.valueOf((long) seconds));
+                binding.timerProgressBar.setProgress((int)seconds,true);
+            }
+
+            @Override
+            public void onFinish() {
+                cancelAlarm();
+                binding.timerText.setVisibility(View.GONE);
+                binding.text.setText("finished");
+                //Get epochTime of the incident
+                long incidentTime = Instant.now().toEpochMilli();
+                //Create a report object
+                lastReport = new Report(ReportType.FALL_REPORT, incidentTime);
+                //Send SMS and Save report to Firebase Async
+                sendFallReportAsync(incidentTime);
+                // after timer finishes gets ready to countdown next fall
+                initializeTimer(FALL_COUNTDOWN);
+                TIMER_STARTED=false;
+            }
+        };
     }
 
     /* Send async sms - save fall report to firebase,
@@ -553,6 +564,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     or if the message is already sent, sends a cancellation message */
     private void cancelAlarm() {
         binding.timerProgressBar.setVisibility(View.GONE);
+        binding.timerText.setVisibility(View.GONE);
         if(!isAlertMessageSent.get()){
             player.stop();
             try {
@@ -614,14 +626,15 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     // save data to prevent losing them on screen rotation when app is running but not shown
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
-        // todo: save timer state on screen rotation
-        Log.e("onSaveInstanceState","onSaveInstanceState");
         outState.putInt("timeProgressBar_visibility",binding.timerProgressBar.getVisibility());
         outState.putInt("timerText_visibility",binding.timerText.getVisibility());
         outState.putInt("abort_button_visibility",binding.abortButton.getVisibility());
         outState.putLong("timer_seconds", seconds);
+        outState.putInt("progress", binding.timerProgressBar.getProgress());
         outState.putParcelable("f_user", user);
         outState.putParcelable("current_location", currentLocation);
+        outState.putBoolean("timer_state", TIMER_STARTED);
+        timer.cancel();
         super.onSaveInstanceState(outState);
     }
 
@@ -629,9 +642,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        Log.e("onRestoreInstanceState","onRestoreInstanceState");
-        // todo: restore timer state on screen rotation
-        binding.timerProgressBar.setMax(10);
+        binding.timerProgressBar.setMax(FALL_COUNTDOWN);
         binding.timerProgressBar.setVisibility(savedInstanceState.getInt("timeProgressBar_visibility"));
         binding.timerText.setVisibility(savedInstanceState.getInt("timerText_visibility"));
         binding.abortButton.setVisibility(savedInstanceState.getInt("abort_button_visibility"));
@@ -639,8 +650,16 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         binding.timerProgressBar.setProgress((int) savedInstanceState.getLong("timer_seconds"),true);
         user = savedInstanceState.getParcelable("f_user");
         currentLocation = savedInstanceState.getParcelable("current_location");
-        timer.onTick(savedInstanceState.getLong("timer_seconds") );
-
+        if(savedInstanceState.getLong("timer_seconds")!=0){
+            initializeTimer((int) savedInstanceState.getLong("timer_seconds"));
+        } else {
+            initializeTimer(FALL_COUNTDOWN);
+        }
+        Log.e("timer 0", String.valueOf(savedInstanceState.getLong("timer_seconds")));
+        TIMER_STARTED=savedInstanceState.getBoolean("timer_state");
+        if(TIMER_STARTED){
+            timer.start();
+        }
     }
 
     @Override
@@ -652,9 +671,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     // Sends SMS to contacts provided by the user in shared preferences
     private void sendTextMessage(ReportType reportType){
         List<EmergencyContact> emergencyContactList = ContactsUtils.getSavedContacts(this);
-        //TODO: Connect contacts with shared preferences
-//        String phoneNumber = "6932474176";
-//        String phoneNumber = "6947679760";
         String message = "SOS";
         String toastMessage = "Message has been sent successfully";
         switch (reportType){

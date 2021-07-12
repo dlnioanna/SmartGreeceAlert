@@ -44,6 +44,7 @@
                 <TextView
                     android:id="@+id/timer_text"
                     style="@style/TextTimesStyle"
+                    android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="@+id/timer_progress_bar"
                     app:layout_constraintEnd_toEndOf="@+id/timer_progress_bar"
                     app:layout_constraintStart_toStartOf="@+id/timer_progress_bar"
