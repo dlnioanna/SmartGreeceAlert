@@ -89,11 +89,11 @@ public class SensorService extends Service implements SensorEventListener {
 
     /* Finite State Machine Logic - Realtime Detection */
     private void fallDetection(double acceleration){
-
+        
         switch (state){
             case INIT_STATE:
-                // Acceleration considered as free fall if it has value between 0.42G and 0.63G
-                if (acceleration > 0.42 && acceleration < 0.63){
+                // Acceleration considered as free fall if it has value lower than 0.42G ~ 0.63G
+                if (acceleration < 0.63){
                     freeFallTime = Instant.now().toEpochMilli();
                     Log.println(Log.DEBUG, TAG, "FREE_FALL_DETECTED: " +freeFallTime);
                     state = FallingState.FREE_FALL_DETECTION_STATE;
@@ -102,11 +102,11 @@ public class SensorService extends Service implements SensorEventListener {
 
             case FREE_FALL_DETECTION_STATE:
                 // Detect ground impact: > 2.02g ~ 3.10g
-                if (acceleration > 3.1){
+                if (acceleration > 2.02){
                     long impactTime = Instant.now().toEpochMilli();
                     long duration =  impactTime - freeFallTime;
                     // Measure duration between free fall incident and impact
-                    if (duration > 300 && duration < 800){
+                    if (duration > 250 && duration < 800){
                         Log.println(Log.DEBUG, TAG, "IMPACT_DETECTED - Falling Duration: "
                                 +duration +" ms");
                         state = FallingState.IMPACT_DETECTION_STATE;
@@ -124,18 +124,18 @@ public class SensorService extends Service implements SensorEventListener {
 
             case IMPACT_DETECTION_STATE:
                 // Detect Immobility (about 1G): If stand still for over 2.5 seconds
-                if (Instant.now().isAfter(Instant.ofEpochMilli(freeFallTime).plusMillis(1500)) &&
+                if (Instant.now().isAfter(Instant.ofEpochMilli(freeFallTime).plusMillis(1800)) &&
                         acceleration >= 0.90 && acceleration <= 1.10){
                     // Detection of motion interrupts the count
                     long duration = Instant.now().toEpochMilli() - freeFallTime;
-                    // 1500ms since free fall detection and 2500ms standing still
+                    // 1800ms since free fall detection and 2200ms standing still
                     if (duration > 4000){
                         Log.println(Log.DEBUG, TAG, "IMMOBILITY_DETECTED");
                         state = FallingState.IMMOBILITY_DETECTION_STATE;
                     }
                 }
                 // if motion is detected go to Initial State
-                else if(Instant.now().isAfter(Instant.ofEpochMilli(freeFallTime).plusMillis(1500))){
+                else if(Instant.now().isAfter(Instant.ofEpochMilli(freeFallTime).plusMillis(1800))){
                     Log.println(Log.DEBUG, TAG, "Resetting...");
                     state = FallingState.INIT_STATE;
                 }
@@ -157,8 +157,8 @@ public class SensorService extends Service implements SensorEventListener {
         double acceleration = movementInstance.getAccelerationVector();
         switch (state){
             case INIT_STATE:
-                // Acceleration considered as free fall if it has value between 0.42G and 0.63G
-                if (acceleration > 0.42 && acceleration < 0.63){
+                // Acceleration considered as free fall if it has value lower than 0.42G ~ 0.63G
+                if (acceleration < 0.63){
                     state = FallingState.FREE_FALL_DETECTION_STATE;
                 }
                 break;
@@ -181,10 +181,10 @@ public class SensorService extends Service implements SensorEventListener {
                         .filter(s -> s.getInstanceTime() < max.getInstanceTime())
                         .min(Comparator.comparing(MovementInstance::getAccelerationVector))
                         .orElseThrow(NoSuchElementException::new);
-                /* Duration should be under 0.8sec and Impact > 2.02G ~ 3.1G according to statistics
-                we calculate the duration between the lowest free fall G and the highest impact G */
+                /* Duration should be under 0.8sec and Impact > 2.02G ~ 3.1G according to statistics.
+                We calculate the duration between the lowest free fall G and the highest impact G */
                 long duration = max.getInstanceTime() - min.getInstanceTime();
-                if (duration > 300 && duration < 800 && max.getAccelerationVector() > 3.1){
+                if (duration > 250 && duration < 800 && max.getAccelerationVector() > 2.02){
                     Log.println(Log.DEBUG, TAG, "IMPACT_DETECTED - Falling Duration: " +duration);
                     boolean isMotionless = flDataset.stream()
                             //Get values that are 1 sec after the impact (filter out any bounces)
