@@ -20,7 +20,7 @@ import unipi.protal.smartgreecealert.utils.SharedPrefsUtils;
 public class ContactsActivity extends AppCompatActivity {
     private ActivityContactsBinding binding;
     private List<EmergencyContact> emergencyContactArrayList;
-    private Integer emergecyContactListSize = 0;
+    private Integer emergencyContactListSize = 0;
     private View view;
 
     @Override
@@ -31,11 +31,11 @@ public class ContactsActivity extends AppCompatActivity {
         setContentView(view);
         emergencyContactArrayList = ContactsUtils.getSavedContacts(this);
         try {
-            emergecyContactListSize = emergencyContactArrayList.size();
+            emergencyContactListSize = emergencyContactArrayList.size();
         } catch (NullPointerException ne) {
             ne.printStackTrace();
         }
-        if (emergecyContactListSize != 0) {
+        if (emergencyContactListSize != 0) {
             populateContactCards();
         } else {
             binding.cardContactFirst.setVisibility(View.GONE);
@@ -70,7 +70,7 @@ public class ContactsActivity extends AppCompatActivity {
     }
 
     private void populateContactCards() {
-        if (emergecyContactListSize == 1) {
+        if (emergencyContactListSize == 1) {
             binding.addContactsTitle.setText(getString(R.string.full_contacts_title));
             binding.cardContactFirst.setVisibility(View.VISIBLE);
             binding.contactFirstName.setText(emergencyContactArrayList.get(0).getName() + " " + emergencyContactArrayList.get(0).getLastName());
@@ -79,7 +79,7 @@ public class ContactsActivity extends AppCompatActivity {
             binding.cardContactThird.setVisibility(View.GONE);
             binding.addContactsButton.setVisibility(View.VISIBLE);
             binding.addContactsTitle.setText(getString(R.string.add_contacts_title));
-        }else  if (emergecyContactListSize == 2) {
+        }else  if (emergencyContactListSize == 2) {
             binding.cardContactFirst.setVisibility(View.VISIBLE);
             binding.contactFirstName.setText(emergencyContactArrayList.get(0).getName() + " " + emergencyContactArrayList.get(0).getLastName());
             binding.contactFirstTelephone.setText(emergencyContactArrayList.get(0).getTelephone());
@@ -89,7 +89,7 @@ public class ContactsActivity extends AppCompatActivity {
             binding.cardContactThird.setVisibility(View.GONE);
             binding.addContactsButton.setVisibility(View.VISIBLE);
             binding.addContactsTitle.setText(getString(R.string.add_contacts_title));
-        } else  if (emergecyContactListSize == 3) {
+        } else  if (emergencyContactListSize == 3) {
             binding.cardContactFirst.setVisibility(View.VISIBLE);
             binding.contactFirstName.setText(emergencyContactArrayList.get(0).getName() + " " + emergencyContactArrayList.get(0).getLastName());
             binding.contactFirstTelephone.setText(emergencyContactArrayList.get(0).getTelephone());
@@ -120,7 +120,7 @@ public class ContactsActivity extends AppCompatActivity {
             @Override
             public void onDismiss(DialogInterface dialog) {
                 emergencyContactArrayList = ContactsUtils.getSavedContacts(getApplicationContext());
-                emergecyContactListSize = emergencyContactArrayList.size();
+                emergencyContactListSize = emergencyContactArrayList.size();
                 populateContactCards();
             }
         });
@@ -170,7 +170,7 @@ public class ContactsActivity extends AppCompatActivity {
             @Override
             public void onDismiss(DialogInterface dialog) {
                 emergencyContactArrayList = ContactsUtils.getSavedContacts(getApplicationContext());
-                emergecyContactListSize = emergencyContactArrayList.size();
+                emergencyContactListSize = emergencyContactArrayList.size();
                 populateContactCards();
             }
         });
@@ -218,7 +218,7 @@ method that creates an alert dialog for user to edit an existing contact
             @Override
             public void onDismiss(DialogInterface dialog) {
                 emergencyContactArrayList = ContactsUtils.getSavedContacts(getApplicationContext());
-                emergecyContactListSize = emergencyContactArrayList.size();
+                emergencyContactListSize = emergencyContactArrayList.size();
                 populateContactCards();
             }
         });
