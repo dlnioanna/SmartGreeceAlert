@@ -70,12 +70,6 @@
             android:name=".services.SensorService"
             android:enabled="true"
             android:exported="true" />
-        <receiver android:name=".services.PowerConnectionReceiver"  android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
-                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
-            </intent-filter>
-        </receiver>
     </application>
 
 </manifest>
