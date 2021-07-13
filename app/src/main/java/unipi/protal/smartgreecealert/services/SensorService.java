@@ -64,9 +64,7 @@ public class SensorService extends Service implements SensorEventListener {
         //Notification and icon
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "765");
         if(SensorService.isPowerConnected){
-            builder.setContentTitle("Earthquake Detection Enabled")
-                    .setSmallIcon(R.drawable.ic_earthquake)
-                    .setAutoCancel(true);
+
         }
         else{
             builder.setContentTitle("Fall Detection Enabled")

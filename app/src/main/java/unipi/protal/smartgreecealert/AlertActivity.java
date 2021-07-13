@@ -488,7 +488,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         thread.start();
     }
 
-    // Save potential earthquake reports in separate firebase node
+    // Save potential earthquake incidents in separate firebase node
     private void sendPotentialEarthquake(long eventTime){
         DatabaseReference dbRef = firebaseDatabase.getReference().child(EARTHQUAKE_INCIDENTS);
         dbRef.push().setValue(new Report(ReportType.EARTHQUAKE_REPORT, currentLocation.getLatitude(),
