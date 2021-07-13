@@ -109,7 +109,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private AtomicBoolean isAlertMessageSent;
     private AtomicBoolean isEarthquakeReportSent;
     private String startingLocale;
-    private long seconds ;
+    private long seconds;
 
 
     @Override
@@ -296,6 +296,21 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                     public void onFailure(@NonNull Exception e) {
                         // Write failed
                         Toast.makeText(getApplicationContext(), getString(R.string.fire_report_result_error), Toast.LENGTH_SHORT).show();
+                    }
+                });
+        //Keep last report in case of cancellation
+        lastReport = report;
+    }
+
+    //Update report - flag as cancelled
+    private void cancelReport(){
+        firebaseDatabase.getReference(REPORTS)
+                .child(user.getUid()).child(String.valueOf(lastReport.getDate()))
+                .child("canceled").setValue(true)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.d(TAG, lastReport.getDate() +"has successfully canceled");
                     }
                 });
     }
@@ -506,6 +521,8 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                 });
     }
 
+    /* If there are more than 3 earthquake incidents in the same minute and in 10km radius, then
+    save report to database and send SMS */
     public void getEarthquakeValidation(long eventTime){
         DatabaseReference dbRef = firebaseDatabase.getReference().child(EARTHQUAKE_INCIDENTS);
         //Get earthquake records of the last minute
@@ -587,6 +604,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             binding.abortButton.setVisibility(View.GONE);
         }
         else {
+            cancelReport();
             //TODO: Firebase canceled flag to true
             sendTextMessage(ReportType.FALSE_ALARM);
             isAlertMessageSent.set(false);

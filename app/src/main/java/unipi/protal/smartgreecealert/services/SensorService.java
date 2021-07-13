@@ -38,6 +38,7 @@ public class SensorService extends Service implements SensorEventListener {
     private long freeFallTime;
     private PowerConnectionReceiver powerConnectionReceiver;
     static boolean isPowerConnected;
+    private IntentFilter filter;
     private long datasetDuration;
     private List<MovementInstance> eqDataset;
     private List<MovementInstance> flDataset;
@@ -56,7 +57,10 @@ public class SensorService extends Service implements SensorEventListener {
         // EarthQuake vars
         eqDataset = new ArrayList<>();
         flDataset = new ArrayList<>();
-
+        // USB Connection BroadcastReceiver
+        powerConnectionReceiver = new PowerConnectionReceiver();
+        filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_BATTERY_CHANGED);
         // Power Connection Intent - Check for USB connection on Startup.
         checkUSBConnectionOnStartUp();
     }
@@ -301,12 +305,9 @@ public class SensorService extends Service implements SensorEventListener {
 
     // Power Connection Intent - Check for USB connection on Startup.
     private void checkUSBConnectionOnStartUp(){
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_BATTERY_CHANGED);
-        powerConnectionReceiver = new PowerConnectionReceiver();
-        Intent chargingStatus = registerReceiver(powerConnectionReceiver, filter);
         //Notification and icon
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "765");
+        Intent chargingStatus = registerReceiver(powerConnectionReceiver, filter);
         int plugged = chargingStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
         isPowerConnected = plugged == BatteryManager.BATTERY_PLUGGED_AC || plugged == BatteryManager.BATTERY_PLUGGED_USB;
         if(SensorService.isPowerConnected){
