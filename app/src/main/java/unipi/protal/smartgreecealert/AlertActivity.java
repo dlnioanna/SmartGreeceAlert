@@ -571,8 +571,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private void cancelAlarm() {
         binding.timerProgressBar.setVisibility(View.GONE);
         binding.timerText.setVisibility(View.GONE);
-        initializeTimer(FALL_COUNTDOWN);
-        TIMER_STARTED=false;
         if(!isAlertMessageSent.get()){
             player.stop();
             try {
@@ -582,6 +580,8 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             }
             try {
                 timer.cancel();
+                initializeTimer(FALL_COUNTDOWN);
+                TIMER_STARTED=false;
             } catch (NullPointerException ne) {
                 ne.printStackTrace();
             }
@@ -632,8 +632,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     protected void onStart() {
         startService(sensorServiceIntent);SharedPrefsUtils.updateLanguage(this, getResources(), SharedPrefsUtils.getCurrentLanguage(this));
-        LanguageUtils.setLocale(this, SharedPrefsUtils.getCurrentLanguage(this));
-        Log.e("onStart locale",SharedPrefsUtils.getCurrentLanguage(this));
         super.onStart();
     }
 
