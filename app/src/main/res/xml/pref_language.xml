@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory android:title="@string/preferences_tittle">
+    <PreferenceCategory
+        android:key="@string/preferences_tittle_key"
+        android:title="@string/preferences_tittle">
         <CheckBoxPreference
             android:defaultValue="true"
         android:key="@string/preferences_greek_key"
