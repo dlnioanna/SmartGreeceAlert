@@ -88,8 +88,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     public static final int TAKE_PICTURE = 2000;
     public static final int MILLIS = 1000;
     private static boolean TIMER_STARTED = false;
-    //TODO: CountDown to 30sec
-    public static final int FALL_COUNTDOWN = 10;
+    public static final int FALL_COUNTDOWN = 30;
     private ActivityAlertBinding binding;
     private boolean mapReady = false;
     private GoogleMap mMap;
