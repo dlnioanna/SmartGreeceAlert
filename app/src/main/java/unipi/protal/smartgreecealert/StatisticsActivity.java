@@ -28,6 +28,7 @@ import java.util.Map;
 import unipi.protal.smartgreecealert.databinding.ActivityStatisticsBinding;
 import unipi.protal.smartgreecealert.entities.Report;
 import unipi.protal.smartgreecealert.entities.ReportType;
+import unipi.protal.smartgreecealert.utils.SharedPrefsUtils;
 
 import static unipi.protal.smartgreecealert.AlertActivity.REPORTS;
 
@@ -124,6 +125,7 @@ public class StatisticsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        SharedPrefsUtils.updateLanguage(this, getResources(), SharedPrefsUtils.getCurrentLanguage(this));
         setTitle(getString(R.string.statistics_setting));
     }
 

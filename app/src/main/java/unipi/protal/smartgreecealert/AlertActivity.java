@@ -5,14 +5,17 @@ import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.os.ConfigurationCompat;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.location.LocationListener;
@@ -62,10 +65,12 @@ import unipi.protal.smartgreecealert.databinding.ActivityAlertBinding;
 import unipi.protal.smartgreecealert.entities.EmergencyContact;
 import unipi.protal.smartgreecealert.entities.Report;
 import unipi.protal.smartgreecealert.entities.ReportType;
+
 import unipi.protal.smartgreecealert.services.SensorService;
 import unipi.protal.smartgreecealert.settings.SettingsActivity;
 import unipi.protal.smartgreecealert.utils.ContactsUtils;
 import unipi.protal.smartgreecealert.utils.ImageUtils;
+import unipi.protal.smartgreecealert.utils.LanguageUtils;
 import unipi.protal.smartgreecealert.utils.SharedPrefsUtils;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
@@ -116,6 +121,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         setContentView(view);
         startingLocale = SharedPrefsUtils.getCurrentLanguage(this);
         SharedPrefsUtils.updateLanguage(this, getResources(), SharedPrefsUtils.getCurrentLanguage(this));
+        LanguageUtils.setLocale(this,SharedPrefsUtils.getCurrentLanguage(this));
         firebaseAuth = FirebaseAuth.getInstance();
         user = firebaseAuth.getCurrentUser();
         firebaseDatabase = FirebaseDatabase.getInstance();
@@ -599,8 +605,11 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     protected void onResume() {
         super.onResume();
+        SharedPrefsUtils.updateLanguage(this, getResources(), SharedPrefsUtils.getCurrentLanguage(this));
         setTitle(getString(R.string.title_activity));
-        if(!startingLocale.equals(SharedPrefsUtils.getCurrentLanguage(this))){
+        binding.fireButton.setText(getString(R.string.fire_button));
+        binding.abortButton.setText(getString(R.string.abort_button));
+            if(!startingLocale.equals(SharedPrefsUtils.getCurrentLanguage(this))){
             Intent intent = getIntent();
             finish();
             startActivity(intent);
@@ -616,12 +625,15 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
 
     @Override
     protected void onStop() {
+        Log.e("onStop locale",SharedPrefsUtils.getCurrentLanguage(this));
         super.onStop();
     }
 
     @Override
     protected void onStart() {
-        startService(sensorServiceIntent);
+        startService(sensorServiceIntent);SharedPrefsUtils.updateLanguage(this, getResources(), SharedPrefsUtils.getCurrentLanguage(this));
+        LanguageUtils.setLocale(this, SharedPrefsUtils.getCurrentLanguage(this));
+        Log.e("onStart locale",SharedPrefsUtils.getCurrentLanguage(this));
         super.onStart();
     }
 
@@ -657,7 +669,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         } else {
             initializeTimer(FALL_COUNTDOWN);
         }
-        Log.e("timer 0", String.valueOf(savedInstanceState.getLong("timer_seconds")));
         TIMER_STARTED=savedInstanceState.getBoolean("timer_state");
         if(TIMER_STARTED){
             timer.start();

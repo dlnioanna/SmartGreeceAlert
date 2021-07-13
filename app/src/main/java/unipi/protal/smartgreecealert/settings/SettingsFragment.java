@@ -14,6 +14,7 @@ import androidx.preference.PreferenceFragmentCompat;
 import java.util.Locale;
 
 import unipi.protal.smartgreecealert.R;
+import unipi.protal.smartgreecealert.utils.LanguageUtils;
 import unipi.protal.smartgreecealert.utils.SharedPrefsUtils;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
@@ -42,7 +43,6 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         englishPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
-
                     greekPreference.setChecked(false);
                     englishPreference.setChecked(true);
                     frenchPreference.setChecked(false);
@@ -75,4 +75,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         getActivity().finish();
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        SharedPrefsUtils.updateLanguage(getActivity(), getResources(), SharedPrefsUtils.getCurrentLanguage(getActivity()));
+    }
 }

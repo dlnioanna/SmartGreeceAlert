@@ -67,6 +67,7 @@
                 <android.widget.Button
                     android:id="@+id/fire_button"
                     style="@style/FireButtonStyle_land"
+                    android:text="@string/fire_button"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent" />

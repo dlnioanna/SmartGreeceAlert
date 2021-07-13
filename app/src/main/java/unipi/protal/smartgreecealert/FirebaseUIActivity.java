@@ -38,6 +38,7 @@ public class FirebaseUIActivity extends AppCompatActivity {
         binding = ActivityFirebaseUiBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
         setContentView(view);
+        SharedPrefsUtils.updateLanguage(this, getResources(), SharedPrefsUtils.getCurrentLanguage(this));
         // Initialize Firebase components
         firebaseAuth = FirebaseAuth.getInstance();
         intent = new Intent(this, AlertActivity.class);
@@ -102,8 +103,9 @@ public class FirebaseUIActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        SharedPrefsUtils.updateLanguage(this, getResources(), SharedPrefsUtils.getCurrentLanguage(this));
        firebaseAuth.addAuthStateListener(authStateListener);
-       SharedPrefsUtils.updateLanguage(this, getResources(), SharedPrefsUtils.getCurrentLanguage(this));
+
     }
 
     /**
