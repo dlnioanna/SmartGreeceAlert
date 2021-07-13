@@ -12,6 +12,7 @@
         <TextView
             android:id="@+id/add_contacts_title"
             style="@style/ContactsTitleStyle"
+            android:text="@string/add_contacts_title"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -146,52 +147,53 @@
                     card_view:contentPadding="@dimen/card_content_padding">
 
                     <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="10"
-                        android:orientation="vertical">
-
-                    <TextView
-                            android:id="@+id/contact_third_name"
-                            style="@style/CardViewContactNameTextStyle"
-                            tools:text="onoma epafhs" />
-
-                        <TextView
-                            android:id="@+id/contact_third_telephone"
-                            style="@style/CardViewContactTelephoneTextStyle"
-                            android:layout_below="@+id/contact_third_name"
-                            tools:text="tilefono" />
-                    </LinearLayout>
-                    <LinearLayout
-                        android:id="@+id/buttons_layout_third"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="3"
                         android:orientation="horizontal">
 
-                        <ImageButton
-                            android:id="@+id/edit_contact_third"
+                        <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:src="@android:drawable/ic_menu_edit"
-                            app:backgroundTint="@android:color/transparent"
-                            app:tint="@android:color/holo_green_dark" />
+                            android:layout_weight="10"
+                            android:orientation="vertical">
 
-                        <ImageButton
-                            android:id="@+id/delete_contact_third"
+                            <TextView
+                                android:id="@+id/contact_third_name"
+                                style="@style/CardViewContactNameTextStyle"
+                                tools:text="onoma epafhs" />
+
+                            <TextView
+                                android:id="@+id/contact_third_telephone"
+                                style="@style/CardViewContactTelephoneTextStyle"
+                                android:layout_below="@+id/contact_third_name"
+                                tools:text="tilefono" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/buttons_layout_third"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:src="@android:drawable/ic_delete"
-                            app:backgroundTint="@android:color/transparent"
-                            app:tint="@android:color/holo_red_dark" />
-                    </LinearLayout>
+                            android:layout_weight="3"
+                            android:orientation="horizontal">
+
+                            <ImageButton
+                                android:id="@+id/edit_contact_third"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:src="@android:drawable/ic_menu_edit"
+                                app:backgroundTint="@android:color/transparent"
+                                app:tint="@android:color/holo_green_dark" />
+
+                            <ImageButton
+                                android:id="@+id/delete_contact_third"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:src="@android:drawable/ic_delete"
+                                app:backgroundTint="@android:color/transparent"
+                                app:tint="@android:color/holo_red_dark" />
+                        </LinearLayout>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
             </LinearLayout>
