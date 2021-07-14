@@ -61,6 +61,8 @@ public class SensorService extends Service implements SensorEventListener {
         powerConnectionReceiver = new PowerConnectionReceiver();
         filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_CHANGED);
+        filter.addAction(Intent.ACTION_POWER_CONNECTED);
+        filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
         // Power Connection Intent - Check for USB connection on Startup.
         checkUSBConnectionOnStartUp();
     }
