@@ -5,6 +5,7 @@ import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.os.ConfigurationCompat;
 
 import android.content.BroadcastReceiver;
@@ -17,6 +18,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -31,6 +33,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
@@ -98,6 +101,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private Intent sensorServiceIntent;
     private MediaPlayer player;
     private AccelerometerReceiver accelerometerReceiver;
+    private StateReceiver stateReceiver;
     private FirebaseUser user;
     private FirebaseAuth firebaseAuth;
     private FirebaseDatabase firebaseDatabase;
@@ -126,18 +130,30 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         firebaseDatabase = FirebaseDatabase.getInstance();
         firebaseStorage = FirebaseStorage.getInstance();
         storageReference = firebaseStorage.getReference(REPORTS);
-        binding.text.setText(user.getDisplayName());
+        //binding.text.setText(user.getDisplayName());
+        binding.text.setText("Falling Detection");
+        binding.imageView.setImageResource(R.drawable.img_standing_man);
         player = MediaPlayer.create(this, R.raw.clock_sound);
-        accelerometerReceiver = new AccelerometerReceiver();
+
         sensorServiceIntent = new Intent(this, SensorService.class);
         earthquakeIncidents = new AtomicInteger(0);
         isAlertMessageSent = new AtomicBoolean(false);
         isEarthquakeReportSent = new AtomicBoolean(false);
+
+        accelerometerReceiver = new AccelerometerReceiver();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ACCELEROMETER_RECEIVER);
         intentFilter.addAction(FALL_RECEIVER);
         intentFilter.addAction(EARTHQUAKE_RECEIVER);
         registerReceiver(accelerometerReceiver, intentFilter);
+
+        stateReceiver = new StateReceiver();
+        IntentFilter intentStateFilter = new IntentFilter();
+        intentStateFilter.addAction(SensorService.STANDING_STATE);
+        intentStateFilter.addAction(SensorService.FALLING_STATE);
+        intentStateFilter.addAction(SensorService.LAYING_STATE);
+        registerReceiver(stateReceiver, intentStateFilter);
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
@@ -435,6 +451,29 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         }
     }
 
+    private class StateReceiver extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "Action: " +intent.getAction());
+            if (intent.getAction().equals(SensorService.STANDING_STATE)){
+                Log.d(TAG, SensorService.STANDING_STATE);
+                binding.text.setText("Falling Detection");
+                binding.imageView.setImageResource(R.drawable.img_standing_man);
+            }
+            else  if (intent.getAction().equals(SensorService.FALLING_STATE)){
+                Log.d(TAG, SensorService.FALLING_STATE);
+                binding.text.setText("Fall Detected!");
+                binding.imageView.setImageResource(R.drawable.img_falling_man);
+            }
+            else if (intent.getAction().equals(SensorService.LAYING_STATE)){
+                Log.d(TAG, SensorService.LAYING_STATE);
+                binding.text.setText("Immobility Detected!");
+                binding.imageView.setImageResource(R.drawable.img_laying_man);
+            }
+        }
+    }
+
     private void initializeTimer(int sec){
         binding.timerProgressBar.setMax(FALL_COUNTDOWN);
         timer = new CountDownTimer(sec*MILLIS, MILLIS) {
@@ -604,8 +643,8 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             binding.abortButton.setVisibility(View.GONE);
         }
         else {
+            //Call cancel report method
             cancelReport();
-            //TODO: Firebase canceled flag to true
             sendTextMessage(ReportType.FALSE_ALARM);
             isAlertMessageSent.set(false);
             binding.abortButton.setVisibility(View.GONE);
@@ -618,7 +657,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         super.onPause();
     }
 
-    // if locale has changed restart the activity for chage to show
+    // if locale has changed restart the activity for change to show
     @Override
     protected void onResume() {
         super.onResume();
@@ -637,6 +676,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     protected void onDestroy() {
         stopService(sensorServiceIntent);
         unregisterReceiver(accelerometerReceiver);
+        unregisterReceiver(stateReceiver);
         super.onDestroy();
     }
 

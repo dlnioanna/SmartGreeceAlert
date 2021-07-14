@@ -29,9 +29,13 @@ import unipi.protal.smartgreecealert.entities.MovementInstance;
 
 
 public class SensorService extends Service implements SensorEventListener {
+
     private static final String TAG = "SensorService";
     private static final String EARTHQUAKE_RECEIVER = "Earthquake_receiver";
     private static final String FALL_RECEIVER = "Fall_receiver";
+    public static final String STANDING_STATE = "Standing_state";
+    public static final String FALLING_STATE = "Falling_state";
+    public static final String LAYING_STATE = "Laying_state";
     private SensorManager sensorManager;
     private Sensor accelerometerSensor;
     private FallingState state;
@@ -84,14 +88,16 @@ public class SensorService extends Service implements SensorEventListener {
             double aY = event.values[1];
             double aZ = event.values[2];
 
-            if(!isPowerConnected){
-                // Call fall detection method - argument acceleration vector
-                fallDetection(new MovementInstance(aX, aY, aZ).getAccelerationVector());
-                //Alternate Method - argument MovementInstance object
-//                fallDetectionV2(new MovementInstance(aX, aY, aZ));
-            }
-            // Call earthquake detection method - argument movement object
-            else earthquakeDetect(new MovementInstance(aX, aY, aZ));
+//            if(!isPowerConnected){
+//                // Call fall detection method - argument acceleration vector
+//                fallDetection(new MovementInstance(aX, aY, aZ).getAccelerationVector());
+//                //Alternate Method - argument MovementInstance object
+////                fallDetectionV2(new MovementInstance(aX, aY, aZ));
+//            }
+//            // Call earthquake detection method - argument movement object
+//            else earthquakeDetect(new MovementInstance(aX, aY, aZ));
+
+            fallDetection(new MovementInstance(aX, aY, aZ).getAccelerationVector());
         }
     }
 
@@ -104,6 +110,7 @@ public class SensorService extends Service implements SensorEventListener {
                 if (acceleration < 0.63){
                     freeFallTime = Instant.now().toEpochMilli();
                     Log.println(Log.DEBUG, TAG, "FREE_FALL_DETECTED: " +freeFallTime);
+                    sendBroadcast(new Intent().setAction(FALLING_STATE));
                     state = FallingState.FREE_FALL_DETECTION_STATE;
                 }
                 break;
@@ -117,15 +124,18 @@ public class SensorService extends Service implements SensorEventListener {
                     if (duration > 250 && duration < 800){
                         Log.println(Log.DEBUG, TAG, "IMPACT_DETECTED - Falling Duration: "
                                 +duration +" ms");
+                        sendBroadcast(new Intent().setAction(LAYING_STATE));
                         state = FallingState.IMPACT_DETECTION_STATE;
                     }
                     else{
                         Log.println(Log.DEBUG, TAG, "Resetting...");
+                        sendBroadcast(new Intent().setAction(STANDING_STATE));
                         state = FallingState.INIT_STATE;
                     }
                 }
                 else if (Instant.now().isAfter(Instant.ofEpochMilli(freeFallTime).plusMillis(800))){
                     Log.println(Log.DEBUG, TAG, "Resetting...");
+                    sendBroadcast(new Intent().setAction(STANDING_STATE));
                     state = FallingState.INIT_STATE;
                 }
                 break;
@@ -136,6 +146,7 @@ public class SensorService extends Service implements SensorEventListener {
                         acceleration >= 0.90 && acceleration <= 1.10){
                     // Detection of motion interrupts the count
                     long duration = Instant.now().toEpochMilli() - freeFallTime;
+                    sendBroadcast(new Intent().setAction(LAYING_STATE));
                     // 1800ms since free fall detection and 2200ms standing still
                     if (duration > 4000){
                         Log.println(Log.DEBUG, TAG, "IMMOBILITY_DETECTED");
@@ -145,6 +156,7 @@ public class SensorService extends Service implements SensorEventListener {
                 // if motion is detected go to Initial State
                 else if(Instant.now().isAfter(Instant.ofEpochMilli(freeFallTime).plusMillis(1800))){
                     Log.println(Log.DEBUG, TAG, "Resetting...");
+                    sendBroadcast(new Intent().setAction(STANDING_STATE));
                     state = FallingState.INIT_STATE;
                 }
                 break;
@@ -155,6 +167,7 @@ public class SensorService extends Service implements SensorEventListener {
                 intent.setAction(FALL_RECEIVER);
                 sendBroadcast(intent);
                 Log.println(Log.DEBUG, TAG, "Alarm Triggered!!!");
+                sendBroadcast(new Intent().setAction(STANDING_STATE));
                 state = FallingState.INIT_STATE;
                 break;
         }
