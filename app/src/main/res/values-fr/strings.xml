@@ -50,5 +50,10 @@
     <string name="statistics_fall">La baisse</string>
     <string name="statistics_earthquake">Tremblement de terre</string>
     <string name="statistics_false_alarm">Annulé</string>
-    <string name="statistics_user">Statistiques utilisateurs</string>
+    <string name="statistics_user">Statistiques</string>
+    <string name="fall_detection">Détection de chute</string>
+    <string name="fall_detected">Chute détectée!</string>
+    <string name="immobility_detected">L\'immobilité a été détectée!</string>
+    <string name="earthquake_detection">Détection de tremblement de terre</string>
+    <string name="canceled">Αnnulé</string>
 </resources>

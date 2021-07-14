@@ -55,5 +55,10 @@
     <string name="statistics_fall">Πτώσεις</string>
     <string name="statistics_earthquake">Σεισμοί</string>
     <string name="statistics_false_alarm">Ακυρωμένα συμβάντα</string>
-    <string name="statistics_user">Στατιστικά χρήστη</string>
+    <string name="statistics_user">Στατιστικά</string>
+    <string name="fall_detection">Ανίχνευση Πτώσης</string>
+    <string name="fall_detected">Ανιχνεύθηκε Πτώση!</string>
+    <string name="immobility_detected">Εντοπίστηκε Aκινησία!</string>
+    <string name="earthquake_detection">Ανίχνευση Σεισμού</string>
+    <string name="canceled">Ακυρώθηκε</string>
 </resources>

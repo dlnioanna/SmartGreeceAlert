@@ -50,5 +50,10 @@
     <string name="statistics_fall">Fall</string>
     <string name="statistics_earthquake">Earthquake</string>
     <string name="statistics_false_alarm">Canceled reports</string>
-    <string name="statistics_user">User statistics</string>
+    <string name="statistics_user">Statistics</string>
+    <string name="fall_detection">Fall Detection</string>
+    <string name="fall_detected">Fall Detected!</string>
+    <string name="immobility_detected">Immobility Detected!</string>
+    <string name="earthquake_detection">Earthquake detection</string>
+    <string name="canceled">Canceled</string>
 </resources>

@@ -40,7 +40,7 @@ public class StatisticsActivity extends AppCompatActivity {
     private ArrayList<Report> reportCanceledList;
     private FirebaseUser user;
     private FirebaseAuth firebaseAuth;
-    private static final String CANCELED_REPORT="canceled";
+    private static final String CANCELED_REPORT = "canceled";
     private boolean LISTS_LOADED=false, CANCELED_LIST_LOADED=false;
 
     @Override
@@ -108,7 +108,6 @@ public class StatisticsActivity extends AppCompatActivity {
 
     }
 
-
     private void setUpPieChart() {
         List<PieEntry> pieEntries = new ArrayList<>();
         if(reportFallList.size()!=0){
@@ -131,7 +130,7 @@ public class StatisticsActivity extends AppCompatActivity {
         PieData pieData = new PieData(pieDataSet);
         binding.pieChart.setData(pieData);
         Description description = new Description();
-        description.setText(getString(R.string.statistics_user));
+        description.setText(user.getDisplayName() +" " +getString(R.string.statistics_user));
         description.setTextSize(20);
         binding.pieChart.setDrawEntryLabels(true);
         binding.pieChart.setUsePercentValues(false);
