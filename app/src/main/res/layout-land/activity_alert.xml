@@ -37,20 +37,22 @@
                 <TextView
                     android:id="@+id/text"
                     style="@style/AlertInfoStyle_land"
+                    app:layout_constraintVertical_chainStyle="packed"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"/>
-
                 <TextView
                     android:id="@+id/timer_text"
                     style="@style/TextTimesStyle_land"
                     android:visibility="gone"
+                    app:layout_constraintVertical_chainStyle="packed"
                     app:layout_constraintBottom_toBottomOf="@+id/timer_progress_bar"
                     app:layout_constraintEnd_toEndOf="@+id/timer_progress_bar"
                     app:layout_constraintStart_toStartOf="@+id/timer_progress_bar"
                     app:layout_constraintTop_toBottomOf="@+id/text" />
                 <ProgressBar
                     android:id="@+id/timer_progress_bar"
+                    app:layout_constraintVertical_chainStyle="packed"
                     style="@style/CircularDeterminateProgressBar_land"
                     android:visibility="gone"
                     app:layout_constraintTop_toBottomOf="@+id/text"
@@ -59,18 +61,33 @@
                    />
                 <android.widget.Button
                     android:id="@+id/abort_button"
-                    style="@style/AbortButtonStyle_land"
-                    app:layout_constraintBottom_toTopOf="@+id/fire_button"
+                    style="@style/FireButtonStyle_land"
+                    app:layout_constraintVertical_chainStyle="packed"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/timer_progress_bar" />
+                    app:layout_constraintStart_toStartOf="parent" />
                 <android.widget.Button
                     android:id="@+id/fire_button"
                     style="@style/FireButtonStyle_land"
+                    app:layout_constraintVertical_chainStyle="packed"
                     android:text="@string/fire_button"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent" />
+                <ImageView
+                    android:id="@+id/imageView"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_marginTop="@dimen/small"
+                    android:layout_marginBottom="@dimen/small"
+                    android:adjustViewBounds="true"
+                    android:cropToPadding="true"
+                    android:scaleType="centerInside"
+                    app:layout_constraintBottom_toTopOf="@+id/fire_button"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/text"
+                    app:layout_constraintVertical_chainStyle="packed" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </LinearLayout>
     </LinearLayout>
