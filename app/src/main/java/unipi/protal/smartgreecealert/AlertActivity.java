@@ -112,7 +112,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private AtomicInteger earthquakeIncidents;
     private AtomicBoolean isAlertMessageSent;
     private AtomicBoolean isEarthquakeReportSent;
-    private String startingLocale;
     private long seconds;
     private Intent lastState;
 
@@ -123,7 +122,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         binding = ActivityAlertBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
         setContentView(view);
-        startingLocale = SharedPrefsUtils.getCurrentLanguage(this);
         SharedPrefsUtils.updateLanguage(this, getResources(), SharedPrefsUtils.getCurrentLanguage(this));
         LanguageUtils.setLocale(this, SharedPrefsUtils.getCurrentLanguage(this));
         firebaseAuth = FirebaseAuth.getInstance();
