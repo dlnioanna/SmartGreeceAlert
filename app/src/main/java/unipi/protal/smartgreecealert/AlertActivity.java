@@ -681,6 +681,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         setTitle(getString(R.string.title_activity));
         binding.fireButton.setText(getString(R.string.fire_button));
         binding.abortButton.setText(getString(R.string.cancellation_button));
+        // todo: binding.setText(".......")
     }
 
     @Override
