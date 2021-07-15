@@ -15,6 +15,6 @@ public class LanguageUtils  {
         Locale.setDefault(locale);
         Configuration config =  activity.getApplicationContext().getResources().getConfiguration();
         config.setLocale(locale);
-        activity.getApplicationContext().getResources().getDisplayMetrics();
+        activity.getApplicationContext().getResources().updateConfiguration(config, activity.getApplicationContext().getResources().getDisplayMetrics());
     }
 }

@@ -265,6 +265,8 @@ method that creates an alert dialog for user to edit an existing contact
     @Override
     protected void onResume() {
         super.onResume();
+        SharedPrefsUtils.updateLanguage(this, getResources(), SharedPrefsUtils.getCurrentLanguage(this));
         setTitle(getString(R.string.add_contacts));
+        binding.addContactsTitle.setText(getString(R.string.add_contacts_title));
     }
 }

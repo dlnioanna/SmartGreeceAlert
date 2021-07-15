@@ -11,6 +11,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.BatteryManager;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -28,15 +29,20 @@ import unipi.protal.smartgreecealert.entities.MovementInstance;
 
 
 public class SensorService extends Service implements SensorEventListener {
+
     private static final String TAG = "SensorService";
     private static final String EARTHQUAKE_RECEIVER = "Earthquake_receiver";
     private static final String FALL_RECEIVER = "Fall_receiver";
+    public static final String STANDING_STATE = "Standing_state";
+    public static final String FALLING_STATE = "Falling_state";
+    public static final String LAYING_STATE = "Laying_state";
     private SensorManager sensorManager;
     private Sensor accelerometerSensor;
     private FallingState state;
     private long freeFallTime;
     private PowerConnectionReceiver powerConnectionReceiver;
     static boolean isPowerConnected;
+    private IntentFilter filter;
     private long datasetDuration;
     private List<MovementInstance> eqDataset;
     private List<MovementInstance> flDataset;
@@ -49,32 +55,20 @@ public class SensorService extends Service implements SensorEventListener {
     public void onCreate() {
         // Init FallingState
         state = FallingState.INIT_STATE;
-        // Power Connection Intent
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_POWER_CONNECTED);
-        filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
-        powerConnectionReceiver = new PowerConnectionReceiver();
-        registerReceiver(powerConnectionReceiver, filter);
         // Init Sensor Manager
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         // EarthQuake vars
         eqDataset = new ArrayList<>();
         flDataset = new ArrayList<>();
-        //Notification and icon
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "765");
-        if(SensorService.isPowerConnected){
-            builder.setContentTitle("Earthquake Detection Enabled")
-                    .setSmallIcon(R.drawable.ic_earthquake)
-                    .setAutoCancel(true);
-        }
-        else{
-            builder.setContentTitle("Fall Detection Enabled")
-                    .setSmallIcon(R.drawable.ic_falling_man)
-                    .setAutoCancel(true);
-        }
-        notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(1, builder.build());
+        // USB Connection BroadcastReceiver
+        powerConnectionReceiver = new PowerConnectionReceiver();
+        filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_BATTERY_CHANGED);
+        filter.addAction(Intent.ACTION_POWER_CONNECTED);
+        filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+        // Power Connection Intent - Check for USB connection on Startup.
+        checkUSBConnectionOnStartUp();
     }
 
     @Nullable
@@ -90,19 +84,20 @@ public class SensorService extends Service implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
 
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            /* Axis divided by Earth's Standard Gravity on surface 9.80665 m/s^2 */
-            double aX = event.values[0] / 9.8665;
-            double aY = event.values[1] / 9.8665;
-            double aZ = event.values[2] / 9.8665;
+            double aX = event.values[0];
+            double aY = event.values[1];
+            double aZ = event.values[2];
 
-            if(!isPowerConnected){
-                // Call fall detection method - argument acceleration vector
-                fallDetection(new MovementInstance(aX, aY, aZ).getAccelerationVector());
-                //Alternate Method - argument MovementInstance object
-//                fallDetectionV2(new MovementInstance(aX, aY, aZ));
-            }
-            // Call earthquake detection method - argument movement object
-            else earthquakeDetect(new MovementInstance(aX, aY, aZ));
+//            if(!isPowerConnected){
+//                // Call fall detection method - argument acceleration vector
+//                fallDetection(new MovementInstance(aX, aY, aZ).getAccelerationVector());
+//                //Alternate Method - argument MovementInstance object
+////                fallDetectionV2(new MovementInstance(aX, aY, aZ));
+//            }
+//            // Call earthquake detection method - argument movement object
+//            else earthquakeDetect(new MovementInstance(aX, aY, aZ));
+
+            fallDetection(new MovementInstance(aX, aY, aZ).getAccelerationVector());
         }
     }
 
@@ -115,6 +110,7 @@ public class SensorService extends Service implements SensorEventListener {
                 if (acceleration < 0.63){
                     freeFallTime = Instant.now().toEpochMilli();
                     Log.println(Log.DEBUG, TAG, "FREE_FALL_DETECTED: " +freeFallTime);
+                    sendBroadcast(new Intent().setAction(FALLING_STATE));
                     state = FallingState.FREE_FALL_DETECTION_STATE;
                 }
                 break;
@@ -128,15 +124,18 @@ public class SensorService extends Service implements SensorEventListener {
                     if (duration > 250 && duration < 800){
                         Log.println(Log.DEBUG, TAG, "IMPACT_DETECTED - Falling Duration: "
                                 +duration +" ms");
+                        sendBroadcast(new Intent().setAction(LAYING_STATE));
                         state = FallingState.IMPACT_DETECTION_STATE;
                     }
                     else{
                         Log.println(Log.DEBUG, TAG, "Resetting...");
+                        sendBroadcast(new Intent().setAction(STANDING_STATE));
                         state = FallingState.INIT_STATE;
                     }
                 }
                 else if (Instant.now().isAfter(Instant.ofEpochMilli(freeFallTime).plusMillis(800))){
                     Log.println(Log.DEBUG, TAG, "Resetting...");
+                    sendBroadcast(new Intent().setAction(STANDING_STATE));
                     state = FallingState.INIT_STATE;
                 }
                 break;
@@ -147,6 +146,7 @@ public class SensorService extends Service implements SensorEventListener {
                         acceleration >= 0.90 && acceleration <= 1.10){
                     // Detection of motion interrupts the count
                     long duration = Instant.now().toEpochMilli() - freeFallTime;
+                    sendBroadcast(new Intent().setAction(LAYING_STATE));
                     // 1800ms since free fall detection and 2200ms standing still
                     if (duration > 4000){
                         Log.println(Log.DEBUG, TAG, "IMMOBILITY_DETECTED");
@@ -156,6 +156,7 @@ public class SensorService extends Service implements SensorEventListener {
                 // if motion is detected go to Initial State
                 else if(Instant.now().isAfter(Instant.ofEpochMilli(freeFallTime).plusMillis(1800))){
                     Log.println(Log.DEBUG, TAG, "Resetting...");
+                    sendBroadcast(new Intent().setAction(STANDING_STATE));
                     state = FallingState.INIT_STATE;
                 }
                 break;
@@ -166,6 +167,7 @@ public class SensorService extends Service implements SensorEventListener {
                 intent.setAction(FALL_RECEIVER);
                 sendBroadcast(intent);
                 Log.println(Log.DEBUG, TAG, "Alarm Triggered!!!");
+                sendBroadcast(new Intent().setAction(STANDING_STATE));
                 state = FallingState.INIT_STATE;
                 break;
         }
@@ -242,10 +244,10 @@ public class SensorService extends Service implements SensorEventListener {
     }
 
     public void earthquakeDetect(MovementInstance movementInstance){
-        if (movementInstance.getAccelerationVector() < 0.99
-                || movementInstance.getAccelerationVector() > 1.01){
+        if (movementInstance.getAccelerationVector() < 0.985
+                || movementInstance.getAccelerationVector() > 1.015){
             eqDataset.add(movementInstance);
-            Log.println(Log.DEBUG, TAG, "Movement Detection! Time: " +movementInstance.getInstanceTime());
+            Log.println(Log.DEBUG, TAG, "Movement Detection! Time: " +movementInstance.getAccelerationVector());
         }
         //if time window is 5 seconds
         if (!eqDataset.isEmpty() && Instant.now().isAfter(Instant.ofEpochMilli(eqDataset.get(0).getInstanceTime()).plusSeconds(5))){
@@ -280,8 +282,8 @@ public class SensorService extends Service implements SensorEventListener {
 
         Log.println(Log.DEBUG, TAG, "IQR -> Dataset Size: " + eqDataset.size()
                 +", Median: " +median_idx +", Q1: " +q1 +", Q3: " +q3 +", IQR: " +iqr);
-        //IQR seems to detect consistent and acceptable for earthquake signal in range (0.03 - 0.05)
-        return iqr> 0.0025 && iqr < 0.035;
+        //IQR seems to detect consistent and acceptable for earthquake signals in range (0.0025 - 0.01)
+        return iqr> 0.0025 && iqr < 0.01;
     }
 
     //Find index of median of an array
@@ -314,6 +316,27 @@ public class SensorService extends Service implements SensorEventListener {
                 +zcrX +", ZeroCrossingY: " +zcrY +", ZeroCrossingZ: " +zcrZ);
         //Hz of zero crossing (earthquakes are about 0.5Hz - 10Hz)
         return (zcrX > 0.5 || zcrY > 0.5 || zcrZ > 0.5) && (zcrX < 10 && zcrY < 10 && zcrZ < 10);
+    }
+
+    // Power Connection Intent - Check for USB connection on Startup.
+    private void checkUSBConnectionOnStartUp(){
+        //Notification and icon
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "765");
+        Intent chargingStatus = registerReceiver(powerConnectionReceiver, filter);
+        int plugged = chargingStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
+        isPowerConnected = plugged == BatteryManager.BATTERY_PLUGGED_AC || plugged == BatteryManager.BATTERY_PLUGGED_USB;
+        if(SensorService.isPowerConnected){
+            builder.setContentTitle("Earthquake Detection Enabled")
+                    .setSmallIcon(R.drawable.ic_earthquake)
+                    .setAutoCancel(true);
+        }
+        else{
+            builder.setContentTitle("Fall Detection Enabled")
+                    .setSmallIcon(R.drawable.ic_falling_man)
+                    .setAutoCancel(true);
+        }
+        notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(1, builder.build());
     }
 
     @Override

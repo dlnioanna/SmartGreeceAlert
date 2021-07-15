@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
 import com.github.mikephil.charting.components.Description;
@@ -18,16 +17,16 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import unipi.protal.smartgreecealert.databinding.ActivityStatisticsBinding;
 import unipi.protal.smartgreecealert.entities.Report;
 import unipi.protal.smartgreecealert.entities.ReportType;
+import unipi.protal.smartgreecealert.utils.SharedPrefsUtils;
 
 import static unipi.protal.smartgreecealert.AlertActivity.REPORTS;
 
@@ -38,9 +37,11 @@ public class StatisticsActivity extends AppCompatActivity {
     private ArrayList<Report> reportFallList;
     private ArrayList<Report> reportEarthquakeList;
     private ArrayList<Report> reportFireList;
-    private ArrayList<Report> reportFalseAlarmList;
+    private ArrayList<Report> reportCanceledList;
     private FirebaseUser user;
     private FirebaseAuth firebaseAuth;
+    private static final String CANCELED_REPORT="canceled";
+    private boolean LISTS_LOADED=false, CANCELED_LIST_LOADED=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +55,8 @@ public class StatisticsActivity extends AppCompatActivity {
         reportFallList = new ArrayList<>();
         reportEarthquakeList = new ArrayList<>();
         reportFireList = new ArrayList<>();
-        reportFalseAlarmList = new ArrayList<>();
+        reportCanceledList = new ArrayList<>();
+        // get all reports from database
         databaseReference = firebaseDatabase.getReference(REPORTS).child(user.getUid());
         databaseReference.addListenerForSingleValueEvent(
                 new ValueEventListener() {
@@ -68,11 +70,12 @@ public class StatisticsActivity extends AppCompatActivity {
                                 reportFallList.add(report);
                             } else if (report.getType().equals(ReportType.FIRE_REPORT)) {
                                 reportFireList.add(report);
-                            } else if (report.getType().equals(ReportType.FALSE_ALARM)) {
-                                reportFalseAlarmList.add(report);
                             }
                         }
-                        setUpPieChart();
+                        LISTS_LOADED=true;
+                        if(LISTS_LOADED && CANCELED_LIST_LOADED){
+                            setUpPieChart();
+                        }
                     }
 
                     @Override
@@ -81,6 +84,27 @@ public class StatisticsActivity extends AppCompatActivity {
                     }
                 }
         );
+
+        // get all the reports that have been cancelled by user
+        Query query = databaseReference.orderByChild(CANCELED_REPORT).equalTo(true);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Report report = snapshot.getValue(Report.class);
+                    reportCanceledList.add(report);
+                }
+                CANCELED_LIST_LOADED=true;
+                if(LISTS_LOADED && CANCELED_LIST_LOADED){
+                    setUpPieChart();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
     }
 
@@ -96,8 +120,8 @@ public class StatisticsActivity extends AppCompatActivity {
         if(reportEarthquakeList.size()!=0){
             pieEntries.add(new PieEntry(reportEarthquakeList.size(),getString(R.string.statistics_earthquake)));
         }
-        if(reportFalseAlarmList.size()!=0){
-            pieEntries.add(new PieEntry(reportFalseAlarmList.size(),getString(R.string.statistics_false_alarm)));
+        if(reportCanceledList.size()!=0){
+            pieEntries.add(new PieEntry(reportCanceledList.size(),getString(R.string.statistics_false_alarm)));
         }
         binding.pieChart.animateXY(2000, 2000);
         PieDataSet pieDataSet = new PieDataSet(pieEntries,null);
@@ -124,6 +148,7 @@ public class StatisticsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        SharedPrefsUtils.updateLanguage(this, getResources(), SharedPrefsUtils.getCurrentLanguage(this));
         setTitle(getString(R.string.statistics_setting));
     }
 
