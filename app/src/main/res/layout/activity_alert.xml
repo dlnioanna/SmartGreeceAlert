@@ -60,21 +60,25 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                    />
+
                 <android.widget.Button
                     android:id="@+id/abort_button"
                     style="@style/FireButtonStyle"
-                    app:layout_constraintVertical_chainStyle="packed"
+                    android:layout_width="240dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" />
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintVertical_chainStyle="packed" />
+
                 <android.widget.Button
                     android:id="@+id/fire_button"
                     style="@style/FireButtonStyle"
-                    app:layout_constraintVertical_chainStyle="packed"
+                    android:layout_width="240dp"
                     android:text="@string/fire_button"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" />
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintVertical_chainStyle="packed" />
 
                 <ImageView
                     android:id="@+id/imageView"

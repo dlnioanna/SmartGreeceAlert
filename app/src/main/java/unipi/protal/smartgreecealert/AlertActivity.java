@@ -431,7 +431,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             }
             if (intent.getAction().equals(EARTHQUAKE_RECEIVER)) {
                 Toast.makeText(context.getApplicationContext(),
-                        "Sensing Earthquake...", Toast.LENGTH_SHORT).show();
+                        getString(R.string.earthquake_detection) +"...", Toast.LENGTH_SHORT).show();
                 long eventTime = Instant.now().toEpochMilli();
                 if (currentLocation != null) {
                     //Save potential earthquake incident to firebase
@@ -493,7 +493,6 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                 binding.fireButton.setVisibility(View.GONE);
                 binding.timerText.setVisibility(View.VISIBLE);
                 binding.timerProgressBar.setVisibility(View.VISIBLE);
-                binding.abortButton.setVisibility(View.VISIBLE);
                 binding.timerText.setText(String.valueOf((long) seconds));
                 binding.timerProgressBar.setProgress((int) seconds, true);
             }
@@ -503,6 +502,8 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                 cancelAlarm();
                 binding.timerText.setVisibility(View.GONE);
                 binding.text.setText("finished");
+                binding.text.setText((!lastState.getAction().equals(SensorService.EARTHQUAKE_STATE)?
+                        getString(R.string.fall_detection): getString(R.string.earthquake_detection)));
                 //Get epochTime of the incident
                 long incidentTime = Instant.now().toEpochMilli();
                 //Create a report object
@@ -531,7 +532,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                     sendTextMessage(ReportType.FALL_REPORT);
                 }
                 while (currentLocation == null) {
-                    Log.println(Log.DEBUG, TAG, "Waiting for GPS signal....");
+                    Log.println(Log.DEBUG, TAG, "Waiting for GPS signal...");
                     try {
                         Thread.sleep(15000);
                     } catch (InterruptedException e) {
@@ -587,7 +588,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                     location.setLongitude(report.getLongitude());
                     //Distance is less or equal to 10km
                     if (currentLocation != null && currentLocation.distanceTo(location) <= 10000) {
-                        earthquakeIncidents.getAndIncrement();
+                        earthquakeIncidents.getAndIncrement(); //earthquakeIncidents += 1
                     }
                 }
                 Log.println(Log.DEBUG, TAG, "Incidents in 10km range: " + earthquakeIncidents);
@@ -678,7 +679,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         SharedPrefsUtils.updateLanguage(this, getResources(), SharedPrefsUtils.getCurrentLanguage(this));
         setTitle(getString(R.string.title_activity));
         binding.fireButton.setText(getString(R.string.fire_button));
-        binding.abortButton.setText(getString(R.string.abort_button));
+        binding.abortButton.setText(getString(R.string.cancellation_button));
         if (!startingLocale.equals(SharedPrefsUtils.getCurrentLanguage(this))) {
             Intent intent = getIntent();
             finish();
@@ -790,6 +791,9 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             isAlertMessageSent.set(true);
             binding.abortButton.setVisibility(View.VISIBLE);
             binding.abortButton.setText(getString(R.string.cancellation_button));
+            binding.fireButton.setVisibility(View.GONE);
+            binding.text.setText((!lastState.getAction().equals(SensorService.EARTHQUAKE_STATE)?
+                    getString(R.string.fall_detection): getString(R.string.earthquake_detection)));
         });
     }
 }
