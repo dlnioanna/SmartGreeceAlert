@@ -499,6 +499,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             public void onFinish() {
                 cancelAlarm();
                 binding.timerText.setVisibility(View.GONE);
+                binding.timerProgressBar.setVisibility(View.GONE);
                 binding.text.setText("finished");
                 binding.text.setText((!lastState.getAction().equals(SensorService.EARTHQUAKE_STATE)?
                         getString(R.string.fall_detection): getString(R.string.earthquake_detection)));
