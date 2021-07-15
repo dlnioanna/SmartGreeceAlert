@@ -681,7 +681,12 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         setTitle(getString(R.string.title_activity));
         binding.fireButton.setText(getString(R.string.fire_button));
         binding.abortButton.setText(getString(R.string.cancellation_button));
-        // todo: binding.setText(".......")
+        try {
+            binding.text.setText((!lastState.getAction().equals(SensorService.EARTHQUAKE_STATE) ?
+                    getString(R.string.fall_detection) : getString(R.string.earthquake_detection)));
+        }catch (NullPointerException ne){
+            ne.printStackTrace();
+        }
     }
 
     @Override
