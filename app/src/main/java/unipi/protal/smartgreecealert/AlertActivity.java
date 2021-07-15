@@ -657,12 +657,14 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                 ne.printStackTrace();
             }
             binding.abortButton.setVisibility(View.GONE);
+            binding.fireButton.setVisibility(View.VISIBLE);
         } else {
             //Call cancel report method
             cancelReport();
             sendTextMessage(ReportType.FALSE_ALARM);
             isAlertMessageSent.set(false);
             binding.abortButton.setVisibility(View.GONE);
+            binding.fireButton.setVisibility(View.VISIBLE);
             binding.text.setText(getString(R.string.canceled));
         }
     }
