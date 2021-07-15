@@ -114,6 +114,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
     private AtomicBoolean isEarthquakeReportSent;
     private String startingLocale;
     private long seconds;
+    private Intent lastState;
 
 
     @Override
@@ -130,28 +131,28 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         firebaseDatabase = FirebaseDatabase.getInstance();
         firebaseStorage = FirebaseStorage.getInstance();
         storageReference = firebaseStorage.getReference(REPORTS);
-        //binding.text.setText(user.getDisplayName());
-        binding.text.setText("Falling Detection");
-        binding.imageView.setImageResource(R.drawable.img_standing_man);
+//        binding.text.setText("Welcome " +user.getDisplayName());
+//        binding.imageView.setImageResource(R.drawable.ic_emergency_call);
         player = MediaPlayer.create(this, R.raw.clock_sound);
-
         sensorServiceIntent = new Intent(this, SensorService.class);
+        //Thread safe variables
         earthquakeIncidents = new AtomicInteger(0);
         isAlertMessageSent = new AtomicBoolean(false);
         isEarthquakeReportSent = new AtomicBoolean(false);
-
+        //Alert type receiver: AccelerometerReceiver
         accelerometerReceiver = new AccelerometerReceiver();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ACCELEROMETER_RECEIVER);
         intentFilter.addAction(FALL_RECEIVER);
         intentFilter.addAction(EARTHQUAKE_RECEIVER);
         registerReceiver(accelerometerReceiver, intentFilter);
-
+        //MainActivity Icon change and animation: StateReceiver
         stateReceiver = new StateReceiver();
         IntentFilter intentStateFilter = new IntentFilter();
         intentStateFilter.addAction(SensorService.STANDING_STATE);
         intentStateFilter.addAction(SensorService.FALLING_STATE);
         intentStateFilter.addAction(SensorService.LAYING_STATE);
+        intentStateFilter.addAction(SensorService.EARTHQUAKE_STATE);
         registerReceiver(stateReceiver, intentStateFilter);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -161,7 +162,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         // startService(sensorServiceIntent);
         binding.abortButton.setOnClickListener(v -> {
             cancelAlarm(); // countdown stops
-            binding.text.setText("abort");
+            binding.text.setText(getString(R.string.canceled));
         });
         binding.fireButton.setOnClickListener(v -> {
             if (currentLocation != null) {
@@ -257,7 +258,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         }
     }
 
-    // stores photo on firebase storage
+    // Stores photo on firebase storage
     private void saveFireReportPhoto(byte[] uploadImage, Long firetime) {
         StorageReference photoRef = storageReference.child(user.getUid()).child(firetime.toString());
         UploadTask uploadTask = photoRef.putBytes(uploadImage);
@@ -268,7 +269,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                 Toast.makeText(getApplicationContext(), getString(R.string.fire_report_result_error), Toast.LENGTH_SHORT).show();
             }
         }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            // if the upload of the photo is successful saveFireReport is called and the uri of the photo is passed in as a parameter
+            // If the upload of the photo is successful saveFireReport is called and the uri of the photo is passed in as a parameter
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 Uri uri = taskSnapshot.getUploadSessionUri();
@@ -277,9 +278,9 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         });
     }
 
-    // stores reports on realtime database and informs the user with a Toast message if the upload is successful or not
+    // Stores reports on realtime database and informs the user with a Toast message if the upload is successful or not
     private void saveReport(ReportType reportType, Long time, Uri... uri) {
-        DatabaseReference dbref = firebaseDatabase.getReference().child(REPORTS);
+        DatabaseReference dbRef = firebaseDatabase.getReference().child(REPORTS);
         Report report;
         switch (reportType) {
             case FIRE_REPORT:
@@ -297,7 +298,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             default:
                 throw new IllegalStateException("Unexpected value: " + reportType);
         }
-        dbref.child(user.getUid()).child(time.toString()).setValue(report)
+        dbRef.child(user.getUid()).child(time.toString()).setValue(report)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -314,11 +315,11 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
                         Toast.makeText(getApplicationContext(), getString(R.string.fire_report_result_error), Toast.LENGTH_SHORT).show();
                     }
                 });
-        //Keep last report in case of cancellation
+        // Keep last report in case of cancellation
         lastReport = report;
     }
 
-    //Update report - flag as cancelled
+    // Update report - flag as cancelled
     private void cancelReport() {
         firebaseDatabase.getReference(REPORTS)
                 .child(user.getUid()).child(String.valueOf(lastReport.getDate()))
@@ -450,23 +451,33 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         }
     }
 
+    //Animate MainActivity Icon
     private class StateReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "Action: " + intent.getAction());
-            if (intent.getAction().equals(SensorService.STANDING_STATE)) {
-                Log.d(TAG, SensorService.STANDING_STATE);
-                binding.text.setText("Falling Detection");
-                binding.imageView.setImageResource(R.drawable.img_standing_man);
-            } else if (intent.getAction().equals(SensorService.FALLING_STATE)) {
-                Log.d(TAG, SensorService.FALLING_STATE);
-                binding.text.setText("Fall Detected!");
-                binding.imageView.setImageResource(R.drawable.img_falling_man);
-            } else if (intent.getAction().equals(SensorService.LAYING_STATE)) {
-                Log.d(TAG, SensorService.LAYING_STATE);
-                binding.text.setText("Immobility Detected!");
-                binding.imageView.setImageResource(R.drawable.img_laying_man);
+            lastState = intent;
+            switch (intent.getAction()){
+                case SensorService.STANDING_STATE:
+                    Log.d(TAG, SensorService.STANDING_STATE);
+                    binding.text.setText(getString(R.string.fall_detection));
+                    binding.imageView.setImageResource(R.drawable.img_standing_man);
+                    break;
+                case SensorService.FALLING_STATE:
+                    Log.d(TAG, SensorService.FALLING_STATE);
+                    binding.text.setText(getString(R.string.fall_detected));
+                    binding.imageView.setImageResource(R.drawable.img_falling_man);
+                    break;
+                case SensorService.LAYING_STATE:
+                    Log.d(TAG, SensorService.LAYING_STATE);
+                    binding.text.setText(getString(R.string.immobility_detected));
+                    binding.imageView.setImageResource(R.drawable.img_laying_man);
+                    break;
+                case SensorService.EARTHQUAKE_STATE:
+                    Log.d(TAG, SensorService.EARTHQUAKE_STATE);
+                    binding.text.setText(getString(R.string.earthquake_detection));
+                    binding.imageView.setImageResource(R.drawable.img_earthquake);
+                    break;
             }
         }
     }
@@ -627,6 +638,9 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
         binding.timerText.setVisibility(View.GONE);
         binding.abortButton.setVisibility(View.GONE);
         binding.fireButton.setVisibility(View.VISIBLE);
+        binding.imageView.setImageResource((!lastState.getAction()
+                .equals(SensorService.EARTHQUAKE_STATE))?
+                R.drawable.img_standing_man:R.drawable.img_earthquake);
         if (!isAlertMessageSent.get()) {
             player.stop();
             try {
@@ -648,7 +662,7 @@ public class AlertActivity extends AppCompatActivity implements OnMapReadyCallba
             sendTextMessage(ReportType.FALSE_ALARM);
             isAlertMessageSent.set(false);
             binding.abortButton.setVisibility(View.GONE);
-            binding.text.setText("abort");
+            binding.text.setText(getString(R.string.canceled));
         }
     }
 

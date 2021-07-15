@@ -36,6 +36,7 @@ public class SensorService extends Service implements SensorEventListener {
     public static final String STANDING_STATE = "Standing_state";
     public static final String FALLING_STATE = "Falling_state";
     public static final String LAYING_STATE = "Laying_state";
+    public static final String EARTHQUAKE_STATE = "earthquake_state";
     private SensorManager sensorManager;
     private Sensor accelerometerSensor;
     private FallingState state;
@@ -88,16 +89,16 @@ public class SensorService extends Service implements SensorEventListener {
             double aY = event.values[1];
             double aZ = event.values[2];
 
-//            if(!isPowerConnected){
-//                // Call fall detection method - argument acceleration vector
-//                fallDetection(new MovementInstance(aX, aY, aZ).getAccelerationVector());
-//                //Alternate Method - argument MovementInstance object
-////                fallDetectionV2(new MovementInstance(aX, aY, aZ));
-//            }
-//            // Call earthquake detection method - argument movement object
-//            else earthquakeDetect(new MovementInstance(aX, aY, aZ));
-
-            fallDetection(new MovementInstance(aX, aY, aZ).getAccelerationVector());
+            if(!isPowerConnected){
+                // Call fall detection method - argument acceleration vector
+                fallDetection(new MovementInstance(aX, aY, aZ).getAccelerationVector());
+                //Alternate Method - argument MovementInstance object
+//                fallDetectionV2(new MovementInstance(aX, aY, aZ));
+            }
+            else{
+                // Call earthquake detection method - argument movement object
+                earthquakeDetect(new MovementInstance(aX, aY, aZ));
+            }
         }
     }
 
@@ -153,7 +154,7 @@ public class SensorService extends Service implements SensorEventListener {
                         state = FallingState.IMMOBILITY_DETECTION_STATE;
                     }
                 }
-                // if motion is detected go to Initial State
+                // If motion is detected go to Initial State
                 else if(Instant.now().isAfter(Instant.ofEpochMilli(freeFallTime).plusMillis(1800))){
                     Log.println(Log.DEBUG, TAG, "Resetting...");
                     sendBroadcast(new Intent().setAction(STANDING_STATE));
@@ -163,11 +164,8 @@ public class SensorService extends Service implements SensorEventListener {
 
             case IMMOBILITY_DETECTION_STATE:
                 // Trigger Countdown Alarm
-                Intent intent = new Intent();
-                intent.setAction(FALL_RECEIVER);
-                sendBroadcast(intent);
+                sendBroadcast(new Intent().setAction(FALL_RECEIVER));
                 Log.println(Log.DEBUG, TAG, "Alarm Triggered!!!");
-                sendBroadcast(new Intent().setAction(STANDING_STATE));
                 state = FallingState.INIT_STATE;
                 break;
         }
@@ -329,11 +327,15 @@ public class SensorService extends Service implements SensorEventListener {
             builder.setContentTitle("Earthquake Detection Enabled")
                     .setSmallIcon(R.drawable.ic_earthquake)
                     .setAutoCancel(true);
+            // Main Activity icon change: StateBroadcast
+            sendBroadcast(new Intent().setAction(EARTHQUAKE_STATE));
         }
         else{
             builder.setContentTitle("Fall Detection Enabled")
                     .setSmallIcon(R.drawable.ic_falling_man)
                     .setAutoCancel(true);
+            // Main Activity icon change: StateBroadcast
+            sendBroadcast(new Intent().setAction(STANDING_STATE));
         }
         notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(1, builder.build());
@@ -363,6 +365,45 @@ public class SensorService extends Service implements SensorEventListener {
         notificationManager.cancel(1);
         super.onDestroy();
     }
+
+    //Inner Class BroadcastReceiver: PowerConnectionReceiver
+    class PowerConnectionReceiver extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(Intent.ACTION_POWER_CONNECTED)){
+                isPowerConnected = true;
+                sendBroadcast(new Intent().setAction(EARTHQUAKE_STATE));
+                buildNotification(context,"765", "myChannel", "Earthquake Detection Enabled", null);
+            }
+            else if (intent.getAction().equals(Intent.ACTION_POWER_DISCONNECTED)){
+                isPowerConnected = false;
+                sendBroadcast(new Intent().setAction(STANDING_STATE));
+                buildNotification(context,"765", "myChannel", "Fall Detection Enabled", null);
+            }
+        }
+
+        public void buildNotification(Context context, String channelId, String channelName, String title, String message){
+            NotificationChannel channel = new NotificationChannel(channelId, channelName,
+                    NotificationManager.IMPORTANCE_LOW);
+            NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            manager.createNotificationChannel(channel);
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
+
+            if(SensorService.isPowerConnected){
+                builder.setContentTitle(title)
+                        .setSmallIcon(R.drawable.ic_earthquake)
+                        .setAutoCancel(true);
+            }
+            else{
+                builder.setContentTitle(title)
+                        .setSmallIcon(R.drawable.ic_falling_man)
+                        .setAutoCancel(true);
+            }
+            manager.notify(1, builder.build());
+        }
+    }
 }
 
 // Fall Detection Enumerator
@@ -373,38 +414,4 @@ enum FallingState {
     IMMOBILITY_DETECTION_STATE
 }
 
-class PowerConnectionReceiver extends BroadcastReceiver{
 
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals(Intent.ACTION_POWER_CONNECTED)){
-            SensorService.isPowerConnected = true;
-            buildNotification(context,"765", "myChannel", "Earthquake Detection Enabled", null);
-        }
-        else if (intent.getAction().equals(Intent.ACTION_POWER_DISCONNECTED)){
-            SensorService.isPowerConnected = false;
-            buildNotification(context,"765", "myChannel", "Fall Detection Enabled", null);
-        }
-    }
-
-    public void buildNotification(Context context, String channelId, String channelName, String title, String message){
-        NotificationChannel channel = new NotificationChannel(channelId, channelName,
-                NotificationManager.IMPORTANCE_LOW);
-        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        manager.createNotificationChannel(channel);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
-
-        if(SensorService.isPowerConnected){
-            builder.setContentTitle(title)
-                    .setSmallIcon(R.drawable.ic_earthquake)
-                    .setAutoCancel(true);
-        }
-        else{
-            builder.setContentTitle(title)
-                    .setSmallIcon(R.drawable.ic_falling_man)
-                    .setAutoCancel(true);
-        }
-        manager.notify(1, builder.build());
-    }
-}
