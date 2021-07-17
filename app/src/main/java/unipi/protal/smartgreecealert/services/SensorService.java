@@ -280,8 +280,8 @@ public class SensorService extends Service implements SensorEventListener {
 
         Log.println(Log.DEBUG, TAG, "IQR -> Dataset Size: " + eqDataset.size()
                 +", Median: " +median_idx +", Q1: " +q1 +", Q3: " +q3 +", IQR: " +iqr);
-        //IQR seems to detect consistent and acceptable for earthquake signals in range (0.0025 - 0.01)
-        return iqr> 0.0025 && iqr < 0.01;
+        //IQR seems to detect consistent and acceptable for earthquake signals in range (0.0025 - 0.025)
+        return iqr> 0.0025 && iqr < 0.025;
     }
 
     //Find index of median of an array
