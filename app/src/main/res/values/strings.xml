@@ -9,7 +9,7 @@
     <string name="gps_yes">NAI</string>
     <string name="gps_no">ΟΧΙ</string>
     <string name="statistics_setting">Στατιστικά</string>
-    <string name="maps_api_key" translatable="false">AIzaSyCaQaIZGhLJcIFWbP-ouDszFh1IobgEsQA</string>
+
     <!--  Language Preferences  -->
     <string name="preferences_tittle_key" translatable="false">choose_lang</string>
     <string name="preferences_tittle">Επιλογή γλώσσας</string>
