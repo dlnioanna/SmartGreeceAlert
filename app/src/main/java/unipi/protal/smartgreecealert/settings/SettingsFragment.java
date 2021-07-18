@@ -1,21 +1,15 @@
 package unipi.protal.smartgreecealert.settings;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.preference.CheckBoxPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
 
-import java.util.Locale;
-
 import unipi.protal.smartgreecealert.R;
-import unipi.protal.smartgreecealert.utils.LanguageUtils;
 import unipi.protal.smartgreecealert.utils.SharedPrefsUtils;
 
 public class SettingsFragment extends PreferenceFragmentCompat {

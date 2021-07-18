@@ -1,21 +1,9 @@
 package unipi.protal.smartgreecealert.settings;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.preference.PreferenceManager;
-import androidx.preference.SwitchPreference;
-import androidx.preference.SwitchPreferenceCompat;
-
-import android.app.Activity;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.view.MenuItem;
-import android.widget.Toast;
-
-import java.util.Locale;
 
 import unipi.protal.smartgreecealert.R;
 import unipi.protal.smartgreecealert.utils.LanguageUtils;

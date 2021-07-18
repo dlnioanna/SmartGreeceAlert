@@ -1,7 +1,5 @@
 package unipi.protal.smartgreecealert.entities;
 
-import android.graphics.Bitmap;
-
 import java.io.Serializable;
 
 public class Report implements Serializable {
